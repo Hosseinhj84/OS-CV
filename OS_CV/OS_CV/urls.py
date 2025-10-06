@@ -17,7 +17,18 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from django.shortcuts import render
+from skill.models import Skills, resume
+
+def home(request):
+    skill = Skills.objects.all()
+    Resume = resume.objects.all()
+
+    return render(request , "main.html" , {"Skill" : skill , "Resumes" : Resume})
+
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("" , home , name="home")
 ]
