@@ -1,8 +1,8 @@
 from django.db import models
 
-class webApp():
+class webApp(models.Model):
     name = models.CharField(max_length=100 , verbose_name="نام اپلیکیشن")
-    icon = models.ImageField(upload_to='app_icons/', verbose_name="آیکون اپلیکیشن")
+    icon = models.ImageField(blank=True , null=True , upload_to='app_icons/', verbose_name="آیکون اپلیکیشن")
     icon_url = models.URLField(blank=True , null=True , verbose_name="آدرس آیکون اپلیکیشن")
     color = models.CharField(max_length=7 , verbose_name="رنگ اپلیکیشن")
     html_content = models.TextField(blank=True , null=True , verbose_name="محتوای HTML اپلیکیشن")

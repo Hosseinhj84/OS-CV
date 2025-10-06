@@ -78,6 +78,7 @@
         font-size: 14px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         backdrop-filter: blur(6px); /* افکت شیشه‌ای جذاب */
+        z-index: 1000;
       }
 
       #battery-container {
@@ -177,6 +178,62 @@
         font-size: 13px;
         margin-top: 4px;
       }
+
+      /* ناحیه کلی دسکتاپ */
+      #desktop-area {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(180deg, #e8eaed, #cfd2d6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      /* بخش آیکون‌ها در وسط صفحه */
+      #desktop-icons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start; /* شروع از سمت چپ */
+        align-items: center;
+        gap: 25px;
+        width: 70%;
+        max-width: 800px;
+        padding: 20px;
+      }
+
+      /* آیکون هر اپلیکیشن */
+      .app-icon {
+        width: 90px;
+        height: 90px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        backdrop-filter: blur(6px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        text-align: center;
+        user-select: none;
+      }
+
+      .app-icon img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        margin-bottom: 8px;
+      }
+
+      .app-icon p {
+        font-size: 14px;
+        color: #2e2e2e;
+        margin: 0;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
@@ -196,12 +253,12 @@
     <!-- Main part -->
     <div id="desktop-area">
       <div id="desktop-icons">
-        {% for app in apps %}
+        {% for app in webApps %}
         <div
           class="app-icon"
           onclick="openApp('{{ app.name|slugify }}', '{{ app.name }}', `{{ app.html_content|safe }}`)"
         >
-          <img src="{{ app.icon.url }}" alt="{{ app.name }}" />
+          <img src="{{ app.get_icon_url }}" alt="{{ app.name }}" />
           <p>{{ app.name }}</p>
         </div>
         {% endfor %}
@@ -254,11 +311,6 @@
         {% empty %}
         <p>there is no skills</p>
         {% endfor %}
-        <button
-          onclick="openApp('calcApp', 'ماشین حساب', '<p>در حال توسعه...</p>')"
-        >
-          باز کردن ماشین حساب
-        </button>
       </div>
     </div>
   </body>
@@ -336,28 +388,41 @@
 
     updateBattery();
 
-    function openApp(appId, title, contentHTML) {
-      let container = document.getElementById("app-windows-container");
-      let windowEl = document.createElement("div");
-      windowEl.className = "app-window";
-      windowEl.id = appId;
+    function openApp(appId, appName, htmlContent, cssContent, jsContent) {
+      // بررسی اینکه قبلاً باز شده یا نه
+      let existing = document.getElementById("window-" + appId);
+      if (existing) {
+        existing.style.display = "block";
+        return;
+      }
 
-      // موقعیت تصادفی (تا 300px از بالا و چپ)
-      let randomTop = Math.floor(Math.random() * 200) + 50;
-      let randomLeft = Math.floor(Math.random() * 200) + 50;
-
-      windowEl.style.top = `${randomTop}px`;
-      windowEl.style.left = `${randomLeft}px`;
-
+      // ساخت پنجره جدید
+      const windowEl = document.createElement("div");
+      windowEl.classList.add("app-window");
+      windowEl.id = "window-" + appId;
       windowEl.innerHTML = `
     <div class="app-header">
-      <span>${title}</span>
-      <button onclick="this.closest('.app-window').remove()">✖</button>
+      <span>${appName}</span>
+      <button onclick="this.closest('.app-window').remove()">×</button>
     </div>
-    <div class="app-content">${contentHTML}</div>
+    <div class="app-body">${htmlContent}</div>
   `;
-      container.appendChild(windowEl);
-      windowEl.style.display = "block";
+
+      document.getElementById("window-container").appendChild(windowEl);
+
+      // CSS اختصاصی
+      if (cssContent) {
+        const styleTag = document.createElement("style");
+        styleTag.textContent = cssContent;
+        document.head.appendChild(styleTag);
+      }
+
+      // JS اختصاصی
+      if (jsContent) {
+        const scriptTag = document.createElement("script");
+        scriptTag.textContent = jsContent;
+        document.body.appendChild(scriptTag);
+      }
 
       makeDraggable(windowEl);
     }

@@ -19,12 +19,14 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from skill.models import Skills, resume
+from Apps.models import webApp
 
 def home(request):
     skill = Skills.objects.all()
     Resume = resume.objects.all()
+    webapp = webApp.objects.filter(is_active=True)
 
-    return render(request , "main.html" , {"Skill" : skill , "Resumes" : Resume})
+    return render(request , "main.html" , {"Skill" : skill , "Resumes" : Resume , "webApps": webapp})
 
 
 
