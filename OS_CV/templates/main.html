@@ -256,7 +256,7 @@
         {% for app in webApps %}
         <div
           class="app-icon"
-          onclick="openApp('{{ app.name|slugify }}', '{{ app.name }}', `{{ app.html_content|safe }}`)"
+          onclick="openApp('{{ app.name }}', '{{ app.name }}', `{{ app.html_content }}`, `{{ app.css_content }}`, `{{ app.js_content }}`)"
         >
           <img src="{{ app.get_icon_url }}" alt="{{ app.name }}" />
           <p>{{ app.name }}</p>
