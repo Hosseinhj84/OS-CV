@@ -234,6 +234,163 @@
         margin: 0;
         font-weight: 500;
       }
+
+      /* اضافه کنید یا جایگزین قبلی کنید */
+      .app-window {
+        transition: transform 300ms ease, opacity 250ms ease;
+        transform-origin: center bottom;
+        /* مطمئن شید در حالت عادی قابل کلیک باشه */
+        pointer-events: auto;
+      }
+
+      /* کلاس وقتی در حال مینیمایز شدن هست (انیمیشن) */
+      .app-window.minimized {
+        transform: scale(0.12) translateY(220px);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* کلاس وقتی پس از مینیمایز کامل می‌خواهیم کاملاً مخفی باشه */
+      .app-window.hidden {
+        display: none !important;
+      }
+
+      .app-header {
+        background: linear-gradient(180deg, #585858, #404040);
+        color: white;
+        padding: 6px 10px;
+        cursor: move;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .window-controls button {
+        background: none;
+        border: none;
+        color: white;
+        font-weight: bold;
+        margin-left: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .window-controls button:hover {
+        color: #ff6961;
+      }
+
+      .app-body {
+        background: white;
+        height: calc(100% - 35px);
+        overflow: auto;
+        padding: 10px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .taskbar {
+        position: fixed;
+        bottom: 99px; /* کمی بالاتر از مهارت‌ها */
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(40, 40, 40, 0.8);
+        color: white;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        padding: 6px 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        min-width: 200px;
+        max-width: 60%;
+        justify-content: center;
+        backdrop-filter: blur(6px);
+        z-index: 1000;
+      }
+
+      .taskbar-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 4px 10px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .taskbar-item:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .taskbar-item img {
+        width: 20px;
+        height: 20px;
+      }
+
+      .window-buttons {
+        display: flex;
+        gap: 6px;
+      }
+
+      .window-buttons button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        width: 25px;
+        height: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .window-buttons button:hover {
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      /* 🔹 انیمیشن باز شدن */
+      @keyframes appOpen {
+        0% {
+          opacity: 0;
+          transform: scale(0.85) translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      /* 🔹 انیمیشن بسته شدن */
+      @keyframes appClose {
+        0% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.85) translateY(20px);
+        }
+      }
+
+      /* 🔹 حالت‌های انیمیشنی */
+      .app-window {
+        animation: appOpen 0.3s ease forwards;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+
+      .app-window.closing {
+        animation: appClose 0.3s ease forwards;
+      }
     </style>
   </head>
   <body>
@@ -256,17 +413,24 @@
         {% for app in webApps %}
         <div
           class="app-icon"
-          onclick="openApp('{{ app.name }}', '{{ app.name }}', `{{ app.html_content }}`, `{{ app.css_content }}`, `{{ app.js_content }}`)"
+          data-app="{{ app.name|slugify }}"
+          data-name="{{ app.name }}"
+          data-html="{{ app.html_content|escapejs }}"
+          data-css="{{ app.css_content|escapejs }}"
+          data-js="{{ app.js_content|escapejs }}"
+          onclick="openApp(this)"
         >
           <img src="{{ app.get_icon_url }}" alt="{{ app.name }}" />
           <p>{{ app.name }}</p>
         </div>
         {% endfor %}
       </div>
+
       <div id="window-container"></div>
     </div>
     <!-- bottom part -->
     <div class="row fixed-bottom justify-content-center">
+      <div id="taskbar" class="taskbar"></div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         style="display: block; position: absolute"
@@ -388,68 +552,192 @@
 
     updateBattery();
 
-    function openApp(appId, appName, htmlContent, cssContent, jsContent) {
-      // بررسی اینکه قبلاً باز شده یا نه
-      let existing = document.getElementById("window-" + appId);
-      if (existing) {
-        existing.style.display = "block";
-        return;
-      }
+    let highestZ = 10;
 
-      // ساخت پنجره جدید
-      const windowEl = document.createElement("div");
-      windowEl.classList.add("app-window");
-      windowEl.id = "window-" + appId;
-      windowEl.innerHTML = `
-    <div class="app-header">
-      <span>${appName}</span>
-      <button onclick="this.closest('.app-window').remove()">×</button>
-    </div>
-    <div class="app-body">${htmlContent}</div>
-  `;
+    function setupWindow(win) {
+      const header = win.querySelector(".app-header");
+      const minimize = win.querySelector(".minimize-btn");
+      const maximize = win.querySelector(".maximize-btn");
+      const close = win.querySelector(".close-btn");
+      const body = win.querySelector(".app-body");
 
-      document.getElementById("window-container").appendChild(windowEl);
-
-      // CSS اختصاصی
-      if (cssContent) {
-        const styleTag = document.createElement("style");
-        styleTag.textContent = cssContent;
-        document.head.appendChild(styleTag);
-      }
-
-      // JS اختصاصی
-      if (jsContent) {
-        const scriptTag = document.createElement("script");
-        scriptTag.textContent = jsContent;
-        document.body.appendChild(scriptTag);
-      }
-
-      makeDraggable(windowEl);
-    }
-
-    function makeDraggable(el) {
-      const header = el.querySelector(".app-header");
-      let offsetX,
-        offsetY,
-        isDown = false;
-
-      header.addEventListener("mousedown", (e) => {
-        isDown = true;
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-        header.style.cursor = "grabbing";
+      // bring to front
+      win.addEventListener("mousedown", () => {
+        win.style.zIndex = ++highestZ;
       });
 
-      document.addEventListener("mouseup", () => {
-        isDown = false;
-        header.style.cursor = "grab";
+      // dragging
+      let offsetX = 0,
+        offsetY = 0,
+        dragging = false;
+
+      header.addEventListener("mousedown", (e) => {
+        dragging = true;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+        win.style.zIndex = ++highestZ;
       });
 
       document.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        el.style.left = `${e.clientX - offsetX}px`;
-        el.style.top = `${e.clientY - offsetY}px`;
+        if (!dragging) return;
+        win.style.left = `${e.clientX - offsetX}px`;
+        win.style.top = `${e.clientY - offsetY}px`;
+      });
+
+      document.addEventListener("mouseup", () => (dragging = false));
+
+      // close button
+      close.addEventListener("click", () => win.remove());
+
+      // minimize
+      minimize.addEventListener("click", () => {
+        body.style.display = body.style.display === "none" ? "block" : "none";
+      });
+
+      // maximize
+      maximize.addEventListener("click", () => {
+        if (win.classList.contains("maximized")) {
+          win.style.top = win.dataset.prevTop;
+          win.style.left = win.dataset.prevLeft;
+          win.style.width = win.dataset.prevWidth;
+          win.style.height = win.dataset.prevHeight;
+          win.classList.remove("maximized");
+        } else {
+          win.dataset.prevTop = win.style.top;
+          win.dataset.prevLeft = win.style.left;
+          win.dataset.prevWidth = win.style.width;
+          win.dataset.prevHeight = win.style.height;
+          win.style.top = "0";
+          win.style.left = "0";
+          win.style.width = "100vw";
+          win.style.height = "100vh";
+          win.classList.add("maximized");
+        }
       });
     }
+
+    // یک متغیر برای افزایش z-index برای اینکه پنجره بازشده جلو باشه
+    let topZ = 1000;
+
+    function bringToFront(el) {
+      topZ += 1;
+      el.style.zIndex = topZ;
+    }
+
+    window.openApp = function (el) {
+      const slug = el.dataset.app;
+      const name = el.dataset.name;
+      const htmlContent = JSON.parse('"' + el.dataset.html + '"');
+      const cssContent = JSON.parse('"' + el.dataset.css + '"');
+      const jsContent = JSON.parse('"' + el.dataset.js + '"');
+
+      let existing = document.getElementById(`window-${slug}`);
+      if (existing) {
+        existing.style.display = "block";
+        existing.classList.remove("minimized");
+        return;
+      }
+
+      // ساخت پنجره برنامه
+      const windowDiv = document.createElement("div");
+      windowDiv.className = "app-window";
+      windowDiv.id = `window-${slug}`;
+      windowDiv.innerHTML = `
+    <div class="app-header">
+      <span>${name}</span>
+      <div class="window-buttons">
+        <button onclick="minimizeApp('${slug}')">—</button>
+        <button onclick="closeApp('${slug}')">×</button>
+      </div>
+    </div>
+    <div class="app-body">${htmlContent}</div>
+  `;
+      document.getElementById("window-container").appendChild(windowDiv);
+
+      windowDiv.style.animation = "appOpen 0.3s ease";
+
+      // ساخت آیکون در تسک‌بار
+      const taskbar = document.getElementById("taskbar");
+      if (!document.getElementById(`task-${slug}`)) {
+        const taskIcon = document.createElement("div");
+        taskIcon.className = "task-icon";
+        taskIcon.id = `task-${slug}`;
+        taskIcon.innerHTML = `<img src="${
+          el.querySelector("img").src
+        }" alt="${name}" style="width:28px;height:28px;">`;
+        taskIcon.onclick = () => toggleApp(slug);
+        taskbar.appendChild(taskIcon);
+      }
+
+      // اضافه کردن CSS و JS اختصاصی
+      if (cssContent.trim()) {
+        const styleTag = document.createElement("style");
+        styleTag.textContent = cssContent;
+        windowDiv.appendChild(styleTag);
+      }
+
+      if (jsContent.trim()) {
+        const scriptTag = document.createElement("script");
+        scriptTag.textContent = jsContent;
+        windowDiv.appendChild(scriptTag);
+      }
+
+      makeDraggable(windowDiv);
+      setupWindow(windowDiv);
+      bringToFront(windowDiv);
+    };
+
+    function makeDraggable(el) {
+      const header = el.querySelector(".app-header");
+      if (!header) return;
+
+      let offsetX = 0,
+        offsetY = 0,
+        isDragging = false;
+
+      header.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        offsetX = e.clientX - el.offsetLeft;
+        offsetY = e.clientY - el.offsetTop;
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        el.style.left = e.clientX - offsetX + "px";
+        el.style.top = e.clientY - offsetY + "px";
+      });
+
+      document.addEventListener("mouseup", () => (isDragging = false));
+    }
+
+    window.minimizeApp = function (slug) {
+      const app = document.getElementById(`window-${slug}`);
+      if (app) {
+        app.classList.add("closing");
+        setTimeout(() => {
+          app.style.display = "none";
+          app.classList.remove("closing");
+        }, 300); // زمان هماهنگ با انیمیشن
+      }
+    };
+
+    window.closeApp = function (slug) {
+      const app = document.getElementById(`window-${slug}`);
+      const task = document.getElementById(`task-${slug}`);
+      if (app) {
+        app.classList.add("closing");
+        setTimeout(() => {
+          app.remove();
+          if (task) task.remove();
+        }, 300);
+      }
+    };
+
+    window.toggleApp = function (slug) {
+      const app = document.getElementById(`window-${slug}`);
+      if (!app) return;
+      if (app.style.display === "none") app.style.display = "block";
+      else app.style.display = "none";
+    };
   </script>
 </html>
