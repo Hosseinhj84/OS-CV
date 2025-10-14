@@ -391,6 +391,172 @@
       .app-window.closing {
         animation: appClose 0.3s ease forwards;
       }
+
+      .app-header {
+        background: linear-gradient(180deg, #585858, #404040);
+        color: white;
+        padding: 6px 10px;
+        cursor: move;
+        display: flex;
+        align-items: center; /* عموداً وسط */
+        justify-content: space-between; /* متن سمت چپ، دکمه‌ها سمت راست */
+        border-radius: 8px 8px 0 0;
+        height: 35px; /* ارتفاع ثابت برای هماهنگی */
+        box-sizing: border-box;
+      }
+
+      .window-buttons {
+        display: flex;
+        align-items: center; /* وسط‌چین عمودی */
+        gap: 6px;
+        height: 100%;
+      }
+
+      .window-buttons button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        width: 24px;
+        height: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        transition: background 0.2s;
+      }
+
+      .window-buttons button:hover {
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      /* 🔹 منوی راست‌کلیک */
+      .context-menu {
+        position: absolute;
+        display: none;
+        background: #222;
+        color: white;
+        border-radius: 8px;
+        list-style: none;
+        padding: 8px 0;
+        min-width: 180px;
+        font-size: 14px;
+        z-index: 2000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      .context-menu li {
+        padding: 6px 14px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .context-menu li:hover {
+        background: #444;
+      }
+
+      .context-menu .has-submenu {
+        position: relative;
+      }
+
+      .submenu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        display: none;
+        background: #333;
+        border-radius: 8px;
+        padding: 6px 0;
+        list-style: none;
+        min-width: 160px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .has-submenu:hover .submenu {
+        display: block;
+      }
+
+      .modal-wallpaper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+      }
+
+      .modal-content{
+        background: #2e2e2e;
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 360px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal-content h4{
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: #ddd;
+      }
+
+      #wallpaper-url-input{
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #fff;
+      }
+
+      #wallpaper-url-input:focus{
+        color: #555;
+      }
+
+      #wallpaper-preview{
+        width: 100%;
+        max-height: 150px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        border: 1px solid #555;
+      }
+
+      .modal-buttons button{
+        background: #0d6efd;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .modal-buttons button:hover{
+        background: #0b5ed7;
+      }
+
+      .modal-buttons #cancel-wallpaper-btn{
+        background: #777;
+      }
+
+      .modal-buttons #cancel-wallpaper-btn:hover{
+        background: #666;
+      }
     </style>
   </head>
   <body>
@@ -477,6 +643,96 @@
         {% endfor %}
       </div>
     </div>
+    <!-- 📜 منوی راست‌کلیک دسکتاپ -->
+    <ul id="context-menu" class="context-menu">
+      <li onclick="newApp()">🟢 New App</li>
+      <li onclick="refreshDesktop()">🔄 Refresh</li>
+
+      <li class="has-submenu">
+        🖼️ Change Wallpaper ▸
+        <ul class="submenu">
+          <li onclick="openFilePicker()">📁 Upload Image</li>
+          <li onclick="openURLPopup()">🌐 Enter URL</li>
+          <li onclick="resetWallpaper()">♻️ Reset to Default</li>
+        </ul>
+      </li>
+
+      <li onclick="openSettings()">⚙️ Desktop Settings</li>
+    </ul>
+
+    <!-- ورودی فایل برای انتخاب عکس -->
+    <input
+      type="file"
+      id="wallpaperFile"
+      accept="image/*"
+      style="display: none"
+    />
+
+    <!-- پنجره پاپ‌آپ تنظیم والپیپر -->
+    <div
+      id="wallpaperPopup"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        z-index: 2000;
+        width: 300px;
+        text-align: center;
+      "
+    >
+      <h4 style="margin-bottom: 10px">Change Wallpaper</h4>
+      <button
+        onclick="chooseWallpaperFile()"
+        style="margin-bottom: 10px"
+        class="btn btn-primary btn-sm"
+      >
+        Upload Image
+      </button>
+      <div style="margin: 8px 0">or</div>
+      <input
+        type="text"
+        id="wallpaperURL"
+        placeholder="Enter image URL..."
+        style="
+          width: 100%;
+          padding: 6px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+        "
+      />
+      <div
+        style="margin-top: 12px; display: flex; justify-content: space-between"
+      >
+        <button class="btn btn-success btn-sm" onclick="applyWallpaper()">
+          Apply
+        </button>
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick="closeWallpaperPopup()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- wallpaper url modal -->
+     <div id="wallpaper-url-modal" class="modal-wallpaper" >
+      <div class="modal-content">
+        <h4>enter wallpaper url</h4>
+        <input type="text" id="wallpaper-url-input" placeholder="Enter image URL..." />
+        <img src="wallpaper-preview" alt="preview" style="display: none;">
+        <div class="modal-buttons">
+          <button id="apply-wallpaper-btn" >Apply</button>
+          <button id="cancel-wallpaper-btn" >Cancel</button>
+        </div>
+      </div>
+     </div>
   </body>
   <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
@@ -618,11 +874,12 @@
 
     // یک متغیر برای افزایش z-index برای اینکه پنجره بازشده جلو باشه
     let topZ = 1000;
-
     function bringToFront(el) {
-      topZ += 1;
+      topZ++;
       el.style.zIndex = topZ;
     }
+
+    window.openApp = window.openApp || function () {};
 
     window.openApp = function (el) {
       const slug = el.dataset.app;
@@ -729,15 +986,226 @@
         setTimeout(() => {
           app.remove();
           if (task) task.remove();
-        }, 300);
+        }, 400); // کمی بیشتر از زمان انیمیشن
       }
     };
 
     window.toggleApp = function (slug) {
       const app = document.getElementById(`window-${slug}`);
       if (!app) return;
-      if (app.style.display === "none") app.style.display = "block";
-      else app.style.display = "none";
+
+      if (app.classList.contains("hidden")) {
+        app.classList.remove("hidden");
+        app.style.display = "block";
+        setTimeout(() => app.classList.remove("minimized"), 10);
+      } else {
+        app.classList.add("minimized");
+        setTimeout(() => app.classList.add("hidden"), 300);
+      }
     };
+
+    // 🎯 هدف منو و دسکتاپ
+    const desktop = document.getElementById("desktop-area");
+    const contextMenu = document.getElementById("context-menu");
+
+    // باز کردن منو در محل کلیک
+    desktop.addEventListener("contextmenu", (e) => {
+      e.preventDefault(); // جلوگیری از منوی پیش‌فرض مرورگر
+
+      // موقعیت ماوس
+      contextMenu.style.top = `${e.clientY}px`;
+      contextMenu.style.left = `${e.clientX}px`;
+      contextMenu.style.display = "block";
+    });
+
+    // بستن منو با کلیک بیرون
+    document.addEventListener("click", (e) => {
+      if (!contextMenu.contains(e.target)) {
+        contextMenu.style.display = "none";
+      }
+    });
+
+    // 🔄 تابع رفرش دسکتاپ
+    function refreshDesktop() {
+      // بستن منوی راست‌کلیک (در صورت باز بودن)
+      const contextMenu = document.getElementById("context-menu");
+      if (contextMenu) contextMenu.style.display = "none";
+
+      // نمایش انیمیشن یا افکت برای حس رفرش واقعی
+      const desktop = document.getElementById("desktop-area");
+      desktop.style.opacity = "0.4";
+      desktop.style.transition = "opacity 0.3s";
+
+      setTimeout(() => {
+        // بازگرداندن ظاهر عادی
+        desktop.style.opacity = "1";
+
+        // 🔁 رفرش داده‌ها (فعلاً ساده: فقط رفرش کامل صفحه)
+        location.reload(); // می‌تونی بعداً این رو هوشمندش کنی
+      }, 300);
+    }
+
+    function changeWallpaper() {
+      const input = document.getElementById("wallpaperInput");
+      input.click();
+
+      input.onchange = function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const desktop = document.getElementById("desktop-area");
+          desktop.style.background = `url(${e.target.result}) center/cover no-repeat`;
+          localStorage.setItem("wallpaper", e.target.result); // برای ذخیره در session
+        };
+        reader.readAsDataURL(file);
+      };
+    }
+
+    // وقتی صفحه رفرش شد، پس‌زمینه قبلی رو برگردون:
+    window.addEventListener("load", () => {
+      const savedWallpaper = localStorage.getItem("wallpaper");
+      if (savedWallpaper) {
+        document.getElementById(
+          "desktop-area"
+        ).style.background = `url(${savedWallpaper}) center/cover no-repeat`;
+      }
+    });
+
+    function changeWallpaper() {
+      document.getElementById("wallpaperPopup").style.display = "block";
+    }
+
+    function closeWallpaperPopup() {
+      document.getElementById("wallpaperPopup").style.display = "none";
+      document.getElementById("wallpaperURL").value = "";
+    }
+
+    function chooseWallpaperFile() {
+      document.getElementById("wallpaperFile").click();
+    }
+
+    // اگر کاربر از فایل خودش استفاده کرد
+    document
+      .getElementById("wallpaperFile")
+      .addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          applyWallpaperBackground(event.target.result);
+        };
+        reader.readAsDataURL(file);
+        closeWallpaperPopup();
+      });
+
+    function applyWallpaper() {
+      const url = document.getElementById("wallpaperURL").value.trim();
+      if (url) {
+        applyWallpaperBackground(url);
+        closeWallpaperPopup();
+      }
+    }
+
+    function applyWallpaperBackground(imageSrc) {
+      const desktop = document.getElementById("desktop-area");
+      desktop.style.background = `url(${imageSrc}) center/cover no-repeat`;
+      localStorage.setItem("wallpaper", imageSrc);
+    }
+
+    // موقع لود صفحه، والپیپر ذخیره‌شده رو لود کن
+    window.addEventListener("load", () => {
+      const saved = localStorage.getItem("wallpaper");
+      if (saved) {
+        document.getElementById(
+          "desktop-area"
+        ).style.background = `url(${saved}) center/cover no-repeat`;
+      }
+    });
+
+    // 📁 انتخاب فایل
+    function openFilePicker() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          applyWallpaper(event.target.result);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+
+    // 🌐 وارد کردن لینک تصویر
+    function openURLPopup() {
+      const modal = document.getElementById("wallpaper-url-modal");
+      const input = document.getElementById("wallpaper-url-input");
+      const preview = document.getElementById("wallpaper-preview");
+      const applyBtn = document.getElementById("apply-wallpaper-btn");
+      const cancelBtn = document.getElementById("cancel-wallpaper-btn");
+
+      modal.style.display = "flex";
+      input.value = "";
+      preview.style.display = "none";
+
+      input.oninput = () => {
+        const url = input.value.trim();
+        if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+          preview.src = url;
+          preview.style.display = "block";
+        } else {
+          preview.style.display = "none";
+        }
+      };
+    }
+
+      applyBtn.onclick = () => {
+        const url = input.value.trim();
+        if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+          applyWallpaper(url);
+          modal.style.display = "none";
+        } else {
+          alert("Please enter a valid image URL.");
+        };
+
+        cancelBtn.onclick = () => {
+          modal.style.display = "none";
+      };
+
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      };
+    }
+
+    // ♻️ بازگرداندن به پیش‌فرض
+    function resetWallpaper() {
+      localStorage.removeItem("wallpaper");
+      document.getElementById("desktop-area").style.background =
+        "linear-gradient(180deg, #e8eaed, #cfd2d6)";
+    }
+
+    // 💾 اعمال تصویر انتخابی و ذخیره
+    function applyWallpaper(src) {
+      const desktop = document.getElementById("desktop-area");
+      desktop.style.background = `url(${src}) center/cover no-repeat`;
+      localStorage.setItem("wallpaper", src);
+    }
+
+    // ♻️ بازگردانی پس‌زمینه ذخیره‌شده موقع لود
+    window.addEventListener("load", () => {
+      const saved = localStorage.getItem("wallpaper");
+      if (saved) {
+        document.getElementById(
+          "desktop-area"
+        ).style.background = `url(${saved}) center/cover no-repeat`;
+      }
+    });
   </script>
 </html>
