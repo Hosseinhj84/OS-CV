@@ -1,581 +1,660 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OSMIND — Desktop CV</title>
+
+    <!-- Bootstrap (optional) -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
-    <title>OS-cv</title>
+
     <style>
+      /* ============================
+         OSMIND MAIN STYLES (kept structure)
+         - small adjustments for glass windows and responsive sizing
+         ============================ */
+
+      :root {
+        --glass-bg: rgba(255, 255, 255, 0.06);
+        --glass-contrast: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --shadow-strong: 0 18px 48px rgba(2, 8, 10, 0.6);
+        --osmind-theme: #00bfa5;
+        --osmind-text-color: #fff;
+      }
+
+      html,
       body {
+        height: 100%;
         margin: 0;
+        font-family: Inter, "Segoe UI", system-ui, -apple-system,
+          "Helvetica Neue", Arial;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
         background: linear-gradient(135deg, #d7e1ec, #f3f3f3);
-        font-family: sans-serif;
         overflow: hidden;
       }
 
-      .inverted {
-        clip-path: url(#clip);
-        width: 100%;
-        height: 100px;
-        background-color: #b1b1b1;
-        aspect-ratio: 4 / 1;
-      }
-
-      .row > * {
-        flex-shrink: 0;
-        width: 100%;
-        max-width: 80%;
-        padding-right: calc(var(--bs-gutter-x) * 0.5);
-        padding-left: calc(var(--bs-gutter-x) * 0.5);
-        margin-top: var(--bs-gutter-y);
-      }
-
-      .skill-box {
-        clip-path: url(#clip-skill);
-        width: 80px;
-        height: 75px;
-        background-color: var(--color);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 15px;
-        transition: transform 0.3s ease, filter 0.3s ease;
-      }
-
-      .skill-box img {
-        width: 60%;
-      }
-
-      .skill-box:hover {
-        transform: scale(1.1);
-        filter: brightness(1.2);
-        cursor: pointer;
-      }
-
-      .fixed-top-right {
-        background: rgba(
-          60,
-          60,
-          60,
-          0.8
-        ); /* خاکستری تیره شفاف‌تر برای حس مدرن */
-        color: white; /* برای دید بهتر متن روی زمینه */
-        width: fit-content; /* اندازه فقط به اندازه محتوا */
-        padding: 8px 15px; /* فاصله داخلی مناسب */
-        display: flex;
-        align-items: center;
-        gap: 20px; /* فاصله بین ساعت، تاریخ، باتری */
-        border-radius: 12px;
+      /* ======== OSMIND TOP BAR ======== */
+      #osmind-topbar {
         position: fixed;
-        right: 15px;
-        top: 10px;
-        font-family: "Segoe UI", sans-serif;
-        font-size: 14px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(6px); /* افکت شیشه‌ای جذاب */
-        z-index: 1000;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: rgba(20, 24, 28, 0.6);
+        backdrop-filter: blur(12px) saturate(160%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        color: var(--osmind-text-color);
+        z-index: 3000;
+        font-family: "Segoe UI", Inter, sans-serif;
       }
 
-      #battery-container {
+      .topbar-left,
+      .topbar-center,
+      .topbar-right {
         display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #osmind-logo {
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: var(--osmind-theme);
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+      }
+      #osmind-logo:hover {
+        opacity: 0.8;
+      }
+
+      #topbar-time {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      #topbar-date {
+        font-size: 12px;
+        opacity: 0.75;
+      }
+
+      .topbar-btn {
+        background: transparent;
+        border: none;
+        color: var(--osmind-text-color);
+        font-size: 18px;
+        cursor: pointer;
+        transition: transform 0.2s, color 0.2s;
+      }
+      .topbar-btn:hover {
+        transform: scale(1.15);
+        color: var(--osmind-theme);
+      }
+
+      /* Taskbar */
+      .taskbar {
+        position: fixed;
+        bottom: 98px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 6px 12px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.6),
+          rgba(0, 0, 0, 0.4)
+        );
+        border-radius: 22px;
+        z-index: 1000;
+        backdrop-filter: blur(6px);
+      }
+
+      .taskbar-item {
+        display: inline-flex;
         align-items: center;
         gap: 8px;
-        margin-top: 5px;
-      }
-
-      #battery-outline {
-        width: 40px;
-        height: 20px;
-        border: 2px solid #ddd;
-        border-radius: 4px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      #battery-cap {
-        width: 4px;
-        height: 10px;
-        background: #ddd;
-        border-radius: 2px;
-        margin-left: -6px;
-      }
-
-      #battery-level {
-        height: 100%;
-        width: 50%;
-        background: #4caf50;
-        transition: width 0.5s ease, background 0.5s ease;
-      }
-
-      #battery-percentage {
-        font-size: 0.9rem;
-      }
-
-      .app-window {
-        position: absolute;
-        top: 100px;
-        left: 100px;
-        width: 400px;
-        background: #f3f3f3;
-        border: 2px solid #444;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        z-index: 100;
-        display: none;
-      }
-
-      .app-header {
-        background: #555;
-        color: white;
-        padding: 8px;
-        border-radius: 6px 6px 0 0;
-        cursor: move;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .app-content {
-        padding: 10px;
-        color: #222;
-      }
-
-      .app-window {
-        resize: both;
-        overflow: auto;
-      }
-
-      #desktop-icons {
-        display: flex;
-        gap: 40px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .app-icon {
-        text-align: center;
-        width: 80px;
+        padding: 6px 10px;
+        border-radius: 10px;
         cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        transition: transform 0.14s ease, background 0.14s;
+      }
+      .taskbar-item:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.08);
       }
 
-      .app-icon img {
-        width: 64px;
-        height: 64px;
-        transition: 0.2s;
-      }
-
-      .app-icon:hover img {
-        transform: scale(1.1);
-      }
-
-      .app-icon p {
-        color: #333;
-        font-size: 13px;
-        margin-top: 4px;
-      }
-
-      /* ناحیه کلی دسکتاپ */
+      /* Desktop area and icons */
       #desktop-area {
         position: relative;
         width: 100vw;
         height: 100vh;
-        background: linear-gradient(180deg, #e8eaed, #cfd2d6);
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
       }
 
-      /* بخش آیکون‌ها در وسط صفحه */
       #desktop-icons {
         display: flex;
+        gap: 24px;
         flex-wrap: wrap;
-        justify-content: flex-start; /* شروع از سمت چپ */
-        align-items: center;
-        gap: 25px;
         width: 70%;
-        max-width: 800px;
-        padding: 20px;
+        max-width: 900px;
+        padding: 18px;
+        justify-content: center;
       }
 
-      /* آیکون هر اپلیکیشن */
       .app-icon {
-        width: 90px;
-        height: 90px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 15px;
-        backdrop-filter: blur(6px);
+        width: 92px;
+        height: 92px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        gap: 6px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        text-align: center;
         user-select: none;
       }
-
       .app-icon img {
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
         object-fit: contain;
-        margin-bottom: 8px;
       }
-
       .app-icon p {
-        font-size: 14px;
-        color: #2e2e2e;
         margin: 0;
-        font-weight: 500;
+        color: #fff;
+        font-size: 13px;
+        text-align: center;
       }
 
-      /* اضافه کنید یا جایگزین قبلی کنید */
+      /* Bottom skill dock (kept original look) */
+      .inverted {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 18px;
+        border-radius: 60px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06),
+          rgba(255, 255, 255, 0.03)
+        );
+        backdrop-filter: blur(8px);
+        z-index: 900;
+      }
+      .skill-box {
+        width: 80px;
+        height: 75px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .skill-box img {
+        width: 56%;
+      }
+
+      /* Context (right-click) menu */
+      .osmind-menu {
+        position: fixed;
+        display: none;
+        z-index: 20000;
+        min-width: 210px;
+        background: linear-gradient(
+          180deg,
+          rgba(12, 12, 12, 0.95),
+          rgba(18, 18, 18, 0.95)
+        );
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        color: #e8fdf5;
+        backdrop-filter: blur(10px) saturate(140%);
+      }
+      .osmind-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 6px 0;
+      }
+      .osmind-menu li {
+        padding: 10px 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.12s, transform 0.12s;
+      }
+      .osmind-menu li:hover {
+        background: rgba(255, 255, 255, 0.03);
+        transform: translateX(6px);
+      }
+
+      /* Glass window base */
       .app-window {
-        transition: transform 300ms ease, opacity 250ms ease;
+        position: absolute;
+        width: 520px;
+        height: 360px;
+        border-radius: 12px;
+        overflow: hidden;
+        display: none;
+        z-index: 1200;
+        box-shadow: var(--shadow-strong);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        /* real frosted glass */
+        backdrop-filter: blur(10px) saturate(130%);
+        -webkit-backdrop-filter: blur(10px) saturate(130%);
+        transition: transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1),
+          opacity 260ms ease, box-shadow 260ms ease;
         transform-origin: center bottom;
-        /* مطمئن شید در حالت عادی قابل کلیک باشه */
+        will-change: transform, opacity, left, top;
         pointer-events: auto;
       }
 
-      /* کلاس وقتی در حال مینیمایز شدن هست (انیمیشن) */
+      .app-window::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.01),
+          rgba(255, 255, 255, 0.02)
+        );
+        mix-blend-mode: overlay;
+      }
+
+      /* visible state */
+      .app-window.show {
+        display: block;
+        animation: os_open 340ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+      }
+
+      /* closing / minimizing */
+      .app-window.closing {
+        animation: os_close 260ms ease forwards;
+      }
+
       .app-window.minimized {
-        transform: scale(0.12) translateY(220px);
+        transform: scale(0.14) translateY(220px);
         opacity: 0;
         pointer-events: none;
       }
 
-      /* کلاس وقتی پس از مینیمایز کامل می‌خواهیم کاملاً مخفی باشه */
-      .app-window.hidden {
-        display: none !important;
+      @keyframes appOpen {
+        from {
+          transform: translateY(16px) scale(0.96);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes appClose {
+        to {
+          transform: translateY(16px) scale(0.96);
+          opacity: 0;
+        }
       }
 
+      /* header */
       .app-header {
-        background: linear-gradient(180deg, #585858, #404040);
-        color: white;
-        padding: 6px 10px;
-        cursor: move;
+        height: 46px;
+        padding: 8px 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-radius: 8px 8px 0 0;
+        gap: 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(0, 0, 0, 0.04)
+        );
+        cursor: grab;
+        -webkit-user-select: none;
+        user-select: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(6px);
       }
 
-      .window-controls button {
-        background: none;
+      /* title */
+      .app-header .title {
+        color: var(--osmind-text-color);
+        font-weight: 600;
+        font-size: 15px;
+      }
+
+      /* buttons */
+      .window-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      .window-buttons button {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
         border: none;
-        color: white;
-        font-weight: bold;
-        margin-left: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        color: #fff;
         cursor: pointer;
-        transition: 0.2s;
-      }
-      .window-controls button:hover {
-        color: #ff6961;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 120ms ease, background 120ms ease;
       }
 
+      .window-buttons button:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      /* body */
       .app-body {
-        background: white;
-        height: calc(100% - 35px);
+        padding: 14px;
+        color: #e9fdf5;
+        height: calc(100% - 46px);
         overflow: auto;
-        padding: 10px;
       }
 
-      @keyframes fadeIn {
+      /* focus shadow when front */
+      .app-window.front {
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+
+      @keyframes os_open {
+        0% {
+          transform: translateY(18px) scale(0.96);
+          opacity: 0;
+          filter: blur(1px) saturate(0.9);
+        }
+        60% {
+          transform: translateY(-6px) scale(1.02);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+          filter: none;
+        }
+      }
+      @keyframes os_close {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(18px) scale(0.96);
+          opacity: 0;
+        }
+      }
+
+      /* Settings specific inside-window layout */
+      .settings-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .settings-tabs button {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: transparent;
+        color: #e8fdf5;
+      }
+      .settings-tabs button.active {
+        background: linear-gradient(
+          90deg,
+          var(--osmind-theme),
+          var(--osmind-theme-hover)
+        );
+        color: #001;
+        font-weight: 700;
+      }
+
+      .setting-row {
+        margin: 10px 0;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .setting-row label {
+        min-width: 150px;
+        color: #dffcf0;
+      }
+
+      .btn-primary-osmind {
+        background: var(--osmind-theme);
+        border: none;
+        color: #001;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .btn-ghost {
+        background: rgba(255, 255, 255, 0.03);
+        color: #e8fdf5;
+        border-radius: 8px;
+        padding: 8px 10px;
+        border: none;
+        cursor: pointer;
+      }
+
+      /* About box styling */
+      .about-box {
+        background: rgba(0, 0, 0, 0.18);
+        padding: 12px;
+        border-radius: 8px;
+        color: #c8fff0;
+      }
+
+      /* responsive tweaks */
+      @media (max-width: 720px) {
+        .app-window {
+          width: 92vw;
+          height: 72vh;
+          left: 4vw !important;
+          top: 8vh !important;
+        }
+        #desktop-icons {
+          width: 92%;
+        }
+        .inverted {
+          display: none;
+        } /* hide dock on small */
+      }
+
+      /* responsive tweaks (unchanged but ensure min-size) */
+      @media (max-width: 720px) {
+        .app-window {
+          width: 92vw;
+          height: 72vh;
+          left: 4vw !important;
+          top: 8vh !important;
+        }
+      }
+
+      /* 🔔 OSMIND Notifications */
+      #osmind-notifications {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 99999;
+      }
+
+      .osmind-toast {
+        min-width: 240px;
+        max-width: 300px;
+        background: rgba(20, 24, 28, 0.75);
+        color: #e8fdf5;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+        animation: toastIn 0.4s ease forwards;
+      }
+
+      .osmind-toast.hide {
+        animation: toastOut 0.4s ease forwards;
+      }
+
+      .osmind-toast.success {
+        border-left: 4px solid #4caf50;
+      }
+      .osmind-toast.error {
+        border-left: 4px solid #ff5252;
+      }
+      .osmind-toast.info {
+        border-left: 4px solid var(--osmind-theme);
+      }
+
+      @keyframes toastIn {
         from {
           opacity: 0;
-          transform: scale(0.9);
+          transform: translateY(20px);
         }
         to {
           opacity: 1;
-          transform: scale(1);
+          transform: translateY(0);
         }
       }
-
-      .taskbar {
-        position: fixed;
-        bottom: 99px; /* کمی بالاتر از مهارت‌ها */
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(40, 40, 40, 0.8);
-        color: white;
-        border-top-left-radius: 25px;
-        border-top-right-radius: 25px;
-        padding: 6px 12px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        min-width: 200px;
-        max-width: 60%;
-        justify-content: center;
-        backdrop-filter: blur(6px);
-        z-index: 1000;
-      }
-
-      .taskbar-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 8px;
-        padding: 4px 10px;
-        cursor: pointer;
-        transition: 0.2s;
-      }
-
-      .taskbar-item:hover {
-        background: rgba(255, 255, 255, 0.3);
-      }
-
-      .taskbar-item img {
-        width: 20px;
-        height: 20px;
-      }
-
-      .window-buttons {
-        display: flex;
-        gap: 6px;
-      }
-
-      .window-buttons button {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 25px;
-        height: 25px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.2s;
-      }
-
-      .window-buttons button:hover {
-        background: rgba(255, 255, 255, 0.4);
-      }
-
-      /* 🔹 انیمیشن باز شدن */
-      @keyframes appOpen {
-        0% {
+      @keyframes toastOut {
+        to {
           opacity: 0;
-          transform: scale(0.85) translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: scale(1) translateY(0);
+          transform: translateY(30px);
         }
       }
 
-      /* 🔹 انیمیشن بسته شدن */
-      @keyframes appClose {
-        0% {
-          opacity: 1;
-          transform: scale(1) translateY(0);
-        }
-        100% {
-          opacity: 0;
-          transform: scale(0.85) translateY(20px);
-        }
-      }
-
-      /* 🔹 حالت‌های انیمیشنی */
-      .app-window {
-        animation: appOpen 0.3s ease forwards;
-        transition: opacity 0.3s, transform 0.3s;
-      }
-
-      .app-window.closing {
-        animation: appClose 0.3s ease forwards;
-      }
-
-      .app-header {
-        background: linear-gradient(180deg, #585858, #404040);
-        color: white;
-        padding: 6px 10px;
-        cursor: move;
-        display: flex;
-        align-items: center; /* عموداً وسط */
-        justify-content: space-between; /* متن سمت چپ، دکمه‌ها سمت راست */
-        border-radius: 8px 8px 0 0;
-        height: 35px; /* ارتفاع ثابت برای هماهنگی */
-        box-sizing: border-box;
-      }
-
-      .window-buttons {
-        display: flex;
-        align-items: center; /* وسط‌چین عمودی */
-        gap: 6px;
-        height: 100%;
-      }
-
-      .window-buttons button {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 24px;
-        height: 24px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        padding: 0;
+      #task-table tr:hover {
+        background: rgba(255, 255, 255, 0.05);
         transition: background 0.2s;
       }
-
-      .window-buttons button:hover {
-        background: rgba(255, 255, 255, 0.4);
+      #task-table button {
+        font-size: 12px;
+        padding: 4px 8px;
+        margin-right: 4px;
       }
 
-      /* 🔹 منوی راست‌کلیک */
-      .context-menu {
-        position: absolute;
-        display: none;
-        background: #222;
-        color: white;
-        border-radius: 8px;
-        list-style: none;
-        padding: 8px 0;
-        min-width: 180px;
-        font-size: 14px;
-        z-index: 2000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      }
-
-      .context-menu li {
-        padding: 6px 14px;
-        cursor: pointer;
-        white-space: nowrap;
-      }
-
-      .context-menu li:hover {
-        background: #444;
-      }
-
-      .context-menu .has-submenu {
-        position: relative;
-      }
-
-      .submenu {
-        position: absolute;
-        top: 0;
-        left: 100%;
-        display: none;
-        background: #333;
-        border-radius: 8px;
-        padding: 6px 0;
-        list-style: none;
-        min-width: 160px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      }
-
-      .has-submenu:hover .submenu {
-        display: block;
-      }
-
-      .modal-wallpaper {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        justify-content: center;
+      /* File Explorer specific */
+      .file-explorer-toolbar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
         align-items: center;
-        z-index: 3000;
       }
-
-      .modal-content{
-        background: #2e2e2e;
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        width: 360px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      .file-explorer-list {
         display: flex;
         flex-direction: column;
+        gap: 6px;
+        max-height: 320px;
+        overflow: auto;
+      }
+      .file-row {
+        display: flex;
         align-items: center;
-        animation: fadeIn 0.3s ease;
+        gap: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: default;
       }
-
-      .modal-content h4{
-        margin-bottom: 10px;
-        font-weight: 500;
-        color: #ddd;
+      .file-row:hover {
+        background: rgba(255, 255, 255, 0.02);
       }
-
-      #wallpaper-url-input{
-        width: 100%;
-        padding: 8px 10px;
-        border: none;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        font-size: 14px;
-        color: #fff;
-      }
-
-      #wallpaper-url-input:focus{
-        color: #555;
-      }
-
-      #wallpaper-preview{
-        width: 100%;
-        max-height: 150px;
-        border-radius: 8px;
-        margin-bottom: 15px;
+      .file-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
         object-fit: cover;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        border: 1px solid #555;
       }
-
-      .modal-buttons button{
-        background: #0d6efd;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-
-      .modal-buttons button:hover{
-        background: #0b5ed7;
-      }
-
-      .modal-buttons #cancel-wallpaper-btn{
-        background: #777;
-      }
-
-      .modal-buttons #cancel-wallpaper-btn:hover{
-        background: #666;
+      .breadcrumbs {
+        font-size: 13px;
+        color: #cfeee6;
+        margin-bottom: 6px;
       }
     </style>
   </head>
+
   <body>
-    <!-- top part -->
-    <div class="fixed-top-right">
-      <div id="date-display"></div>
-      <div id="time-display"></div>
-      <div id="battery-container">
-        <div id="battery-outline">
-          <div id="battery-level"></div>
-        </div>
-        <div id="battery-cap"></div>
-        <span id="battery-percentage"></span>
+    <!-- Top bar -->
+    <div id="osmind-topbar" aria-hidden="false">
+      <div class="topbar-left">
+        <div id="osmind-logo">⚡ OSMIND</div>
       </div>
+      <div class="topbar-center">
+        <div id="topbar-time">--:--</div>
+        <div id="topbar-date">---</div>
+      </div>
+      <div class="topbar-right">
+        <div
+          id="battery-container"
+          style="display: flex; align-items: center; gap: 8px"
+        >
+          <div
+            id="battery-outline"
+            style="
+              width: 42px;
+              height: 20px;
+              border-radius: 4px;
+              border: 2px solid rgba(255, 255, 255, 0.14);
+              overflow: hidden;
+            "
+          >
+            <div
+              id="battery-level"
+              style="
+                height: 100%;
+                width: 50%;
+                background: #4caf50;
+                transition: width 0.4s;
+              "
+            ></div>
+          </div>
+          <div id="battery-percentage" style="color: var(--osmind-text-color)">
+            —
+          </div>
+        </div>
+      </div>
+      <button class="topbar-btn" id="btn-settings">⚙️</button>
+      <button class="topbar-btn" id="btn-task">🪟</button>
     </div>
 
-    <!-- Main part -->
+    <!-- Desktop area -->
     <div id="desktop-area">
       <div id="desktop-icons">
+        <!-- Django loop should render apps here -->
         {% for app in webApps %}
         <div
           class="app-icon"
@@ -590,622 +669,2362 @@
           <p>{{ app.name }}</p>
         </div>
         {% endfor %}
-      </div>
-
-      <div id="window-container"></div>
-    </div>
-    <!-- bottom part -->
-    <div class="row fixed-bottom justify-content-center">
-      <div id="taskbar" class="taskbar"></div>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        style="display: block; position: absolute"
-        width="0"
-        height="0"
-      >
-        <defs>
-          <clipPath id="clip" clipPathUnits="objectBoundingBox">
-            <path
-              d="M0.065,0H0.935A0.065,0.26,0,0,1,1,0.26V0.74A0.065,0.26,0,0,1,0.935,1H0.065A0.065,0.26,0,0,1,0,0.74V0.26A0.065,0.26,0,0,1,0.065,0Z"
-            />
-          </clipPath>
-        </defs>
-      </svg>
-      <div
-        class="inverted d-flex flex-wrap justify-content-center align-items-center"
-        style="border-radius: 60px"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          style="display: block; position: absolute"
-          width="0"
-          height="0"
-        >
-          <defs>
-            <clipPath id="clip" clipPathUnits="objectBoundingBox">
-              <path
-                d="M0.195,0H0.805A0.195,0.195,0,0,1,1,0.195V0.805A0.195,0.195,0,0,1,0.805,1H0.195A0.195,0.195,0,0,1,0,0.805V0.195A0.195,0.195,0,0,1,0.195,0Z"
-              />
-            </clipPath>
-          </defs>
-        </svg>
-        {% for skills in Skill %}
-        <div
-          class="skill-box"
-          style="--color: {{ skills.color }}; clip-path: url(#clip);width: 80px;height: 75px;aspect-ratio: 1 / 1;border-radius: 20px;"
-          data-bs-toggle="tooltip"
-          title="{{ skills.title }}"
-        >
-          <img src="{{ skills.get_icon_url }}" alt="{{ skills.title }}" />
+        <div class="app-icon" onclick="openTaskManager()">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/992/992651.png"
+            alt="Task Manager"
+          />
+          <p>Task Manager</p>
         </div>
-        {% empty %}
-        <p>there is no skills</p>
-        {% endfor %}
+
+        <!-- Desktop icon for File Explorer -->
+        <div
+          class="app-icon"
+          id="desktop-files-icon"
+          data-app="files"
+          data-name="File Explorer"
+          onclick="openFileExplorer()"
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/716/716784.png"
+            alt="Files"
+          />
+          <p>Files</p>
+        </div>
+
+        <!-- Notification container is created by script if missing -->
       </div>
+
+      <div
+        id="window-container"
+        style="position: absolute; inset: 0; pointer-events: none"
+      ></div>
     </div>
-    <!-- 📜 منوی راست‌کلیک دسکتاپ -->
-    <ul id="context-menu" class="context-menu">
-      <li onclick="newApp()">🟢 New App</li>
-      <li onclick="refreshDesktop()">🔄 Refresh</li>
 
-      <li class="has-submenu">
-        🖼️ Change Wallpaper ▸
-        <ul class="submenu">
-          <li onclick="openFilePicker()">📁 Upload Image</li>
-          <li onclick="openURLPopup()">🌐 Enter URL</li>
-          <li onclick="resetWallpaper()">♻️ Reset to Default</li>
-        </ul>
-      </li>
+    <!-- Bottom skill dock -->
+    <div class="inverted" id="skill-dock">
+      {% for skills in Skill %}
+      <div class="skill-box" style="background: {{ skills.color }} ;">
+        <img src="{{ skills.get_icon_url }}" alt="{{ skills.title }}" />
+      </div>
+      {% endfor %}
+    </div>
 
-      <li onclick="openSettings()">⚙️ Desktop Settings</li>
-    </ul>
+    <!-- Taskbar -->
+    <div id="taskbar" class="taskbar" aria-hidden="false"></div>
 
-    <!-- ورودی فایل برای انتخاب عکس -->
+    <!-- Context menu -->
+    <div
+      id="osmind-context-menu"
+      class="osmind-menu"
+      role="menu"
+      aria-hidden="true"
+    >
+      <ul>
+        <li id="context-refresh">🔄 Refresh Desktop</li>
+        <li id="context-wallpaper">
+          🖼 Wallpaper ▶
+          <ul style="display: none"></ul>
+        </li>
+        <li id="context-settings">⚙ Settings</li>
+        <li id="context-about">ℹ About</li>
+      </ul>
+    </div>
+
+    <!-- Hidden global file input for wallpaper -->
     <input
-      type="file"
       id="wallpaperFile"
+      type="file"
       accept="image/*"
       style="display: none"
     />
 
-    <!-- پنجره پاپ‌آپ تنظیم والپیپر -->
+    <!-- Notification Container (global) -->
+    <div id="osmind-notifications"></div>
+
+    <!-- Templates: (we'll create settings window dynamically) -->
+
+    <!-- Replace existing #boot-screen with this block -->
     <div
-      id="wallpaperPopup"
+      id="boot-screen"
       style="
-        display: none;
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        z-index: 2000;
-        width: 300px;
-        text-align: center;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, #000 10%, #02060a 100%);
+        color: #00ffd2;
+        font-family: Consolas, monospace;
       "
     >
-      <h4 style="margin-bottom: 10px">Change Wallpaper</h4>
-      <button
-        onclick="chooseWallpaperFile()"
-        style="margin-bottom: 10px"
-        class="btn btn-primary btn-sm"
-      >
-        Upload Image
-      </button>
-      <div style="margin: 8px 0">or</div>
-      <input
-        type="text"
-        id="wallpaperURL"
-        placeholder="Enter image URL..."
-        style="
-          width: 100%;
-          padding: 6px;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-        "
-      />
-      <div
-        style="margin-top: 12px; display: flex; justify-content: space-between"
-      >
-        <button class="btn btn-success btn-sm" onclick="applyWallpaper()">
-          Apply
-        </button>
-        <button
-          class="btn btn-secondary btn-sm"
-          onclick="closeWallpaperPopup()"
+      <div style="text-align: center; max-width: 560px; padding: 18px">
+        <!-- inline SVG logo (no external fetch) -->
+        <div
+          style="display: flex; justify-content: center; margin-bottom: 12px"
         >
-          Cancel
-        </button>
-      </div>
-    </div>
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 120 120"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <radialGradient id="g" cx="50%" cy="30%">
+                <stop offset="0%" stop-color="#00ffd2" />
+                <stop offset="100%" stop-color="#007a65" />
+              </radialGradient>
+            </defs>
+            <rect
+              rx="20"
+              ry="20"
+              width="120"
+              height="120"
+              fill="url(#g)"
+              opacity="0.95"
+            ></rect>
+            <path d="M36 78 L60 40 L84 78 Z" fill="#001" opacity="0.08"></path>
+            <text
+              x="50%"
+              y="86%"
+              font-size="16"
+              fill="#001"
+              text-anchor="middle"
+              font-weight="700"
+            >
+              OSMIND
+            </text>
+          </svg>
+        </div>
 
-    <!-- wallpaper url modal -->
-     <div id="wallpaper-url-modal" class="modal-wallpaper" >
-      <div class="modal-content">
-        <h4>enter wallpaper url</h4>
-        <input type="text" id="wallpaper-url-input" placeholder="Enter image URL..." />
-        <img src="wallpaper-preview" alt="preview" style="display: none;">
-        <div class="modal-buttons">
-          <button id="apply-wallpaper-btn" >Apply</button>
-          <button id="cancel-wallpaper-btn" >Cancel</button>
+        <div
+          id="boot-terminal"
+          style="
+            background: rgba(0, 10, 10, 0.45);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 195, 0.06);
+            box-shadow: inset 0 0 10px rgba(0, 255, 195, 0.03);
+            color: #bdfcff;
+            height: 160px;
+            overflow: hidden;
+          "
+        >
+          <div
+            id="boot-lines"
+            style="
+              white-space: pre-line;
+              line-height: 1.4;
+              text-align: left;
+              font-size: 13px;
+            "
+          ></div>
+        </div>
+
+        <div
+          style="
+            height: 10px;
+            margin-top: 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+          "
+        >
+          <div
+            id="boot-progress"
+            style="
+              height: 100%;
+              width: 0%;
+              background: linear-gradient(90deg, #00f5c4, #00bfa6);
+              transition: width 400ms ease;
+            "
+          ></div>
+        </div>
+        <div
+          id="boot-tip"
+          style="
+            margin-top: 10px;
+            color: rgba(189, 252, 255, 0.6);
+            font-size: 13px;
+          "
+        >
+          Initializing OSMIND core — please wait...
         </div>
       </div>
-     </div>
-  </body>
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-    crossorigin="anonymous"
-  ></script>
-  <script>
-    function updateClock() {
-      const now = new Date();
-      const time = now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const date = now.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-      document.getElementById("time-display").textContent = time;
-      document.getElementById("date-display").textContent = date;
-    }
 
-    setInterval(updateClock, 1000);
-    updateClock();
+      <!-- fallback audio element (hidden)
+      <audio
+        id="boot-sound"
+        preload="auto"
+        src="/static/sounds/osmind-boot.wav"
+      ></audio> -->
+    </div>
 
-    if ("getBattery" in navigator) {
-      navigator.getBattery().then(function (battery) {
-        function updateBattery() {
-          const level = Math.round(battery.level * 100);
-          document.getElementById(
-            "battery-display"
-          ).textContent = `🔋${level}%`;
+    <!-- Bootstrap bundle (optional) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- <script>
+      /* ===========================
+  OSMIND — Simulated File Explorer (localStorage)
+  Paste this after your main script (or inside it near other apps).
+  Provides: explorer window, text editor, image viewer, create/delete/rename, upload/download.
+  ============================ */
+
+      (function () {
+        // safety: don't redefine
+        if (window.openFileExplorer) return;
+
+        const FS_KEY = "osmind_fs_v1";
+
+        // helpers (reuse if exist)
+        const qs = (s, r = document) => (r || document).querySelector(s);
+        const qsa = (s, r = document) =>
+          Array.from((r || document).querySelectorAll(s));
+        const uid = () => "f" + Math.random().toString(36).slice(2, 9);
+
+        // safe references to host helpers (fallbacks)
+        const HOST = {
+          OSMIND_APPS: window.OSMIND_APPS || new Map(),
+          makeDraggable:
+            window.makeDraggable ||
+            function (w) {
+              /* noop */
+            },
+          bringToFront:
+            window.bringToFront ||
+            function (el) {
+              if (el) el.style.zIndex = 9999;
+            },
+          playSound: window.playSound || function () {},
+          showNotification:
+            window.showNotification ||
+            function (m, t) {
+              console.log(t || "info", m);
+            },
+          updateAppManagerUI: window.updateAppManagerUI || function () {},
+          updateTaskManagerUI: window.updateTaskManagerUI || function () {},
+        };
+
+        /* ======= Virtual FS helpers ======= */
+        function fsLoad() {
+          try {
+            const raw = localStorage.getItem(FS_KEY);
+            if (!raw) {
+              // init with Desktop + sample files
+              const init = {
+                Desktop: {
+                  "readme.txt": {
+                    type: "text",
+                    content:
+                      "Welcome to OSMIND File Explorer!\nDouble-click files to open them.\nRight now this is a simulated FS in localStorage.",
+                  },
+                  "logo.png": {
+                    type: "image",
+                    // optional: leave empty, or embed a tiny placeholder
+                    content: "",
+                  },
+                },
+                Documents: {},
+              };
+              localStorage.setItem(FS_KEY, JSON.stringify(init));
+              return init;
+            }
+            return JSON.parse(raw);
+          } catch (e) {
+            console.warn("fsLoad error", e);
+            return {};
+          }
         }
-        updateBattery();
-        battery.addEventListener("levelchange", updateBattery);
-      });
-    } else {
-      document.getElementById("battery-display").textContent = "🔋N/A";
-    }
-
-    async function updateBattery() {
-      if ("getBattery" in navigator) {
-        const battery = await navigator.getBattery();
-        const levelBar = document.getElementById("battery-level");
-        const percentageText = document.getElementById("battery-percentage");
-
-        function updateAll() {
-          const level = Math.round(battery.level * 100);
-          percentageText.textContent = level + "%";
-          levelBar.style.width = level + "%";
-
-          if (battery.charging) {
-            levelBar.style.background = "#00bcd4"; // آبی در حالت شارژ
-          } else if (level > 80) {
-            levelBar.style.background = "#4caf50"; // سبز
-          } else if (level > 40) {
-            levelBar.style.background = "#ffeb3b"; // زرد
-          } else if (level > 15) {
-            levelBar.style.background = "#ff9800"; // نارنجی
-          } else {
-            levelBar.style.background = "#f44336"; // قرمز
+        function fsSave(state) {
+          try {
+            localStorage.setItem(FS_KEY, JSON.stringify(state));
+          } catch (e) {
+            console.warn("fsSave error", e);
           }
         }
 
-        updateAll();
-        battery.addEventListener("levelchange", updateAll);
-        battery.addEventListener("chargingchange", updateAll);
-      } else {
-        document.getElementById("battery-container").innerHTML =
-          "Battery info not supported";
-      }
-    }
-
-    updateBattery();
-
-    let highestZ = 10;
-
-    function setupWindow(win) {
-      const header = win.querySelector(".app-header");
-      const minimize = win.querySelector(".minimize-btn");
-      const maximize = win.querySelector(".maximize-btn");
-      const close = win.querySelector(".close-btn");
-      const body = win.querySelector(".app-body");
-
-      // bring to front
-      win.addEventListener("mousedown", () => {
-        win.style.zIndex = ++highestZ;
-      });
-
-      // dragging
-      let offsetX = 0,
-        offsetY = 0,
-        dragging = false;
-
-      header.addEventListener("mousedown", (e) => {
-        dragging = true;
-        offsetX = e.clientX - win.offsetLeft;
-        offsetY = e.clientY - win.offsetTop;
-        win.style.zIndex = ++highestZ;
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!dragging) return;
-        win.style.left = `${e.clientX - offsetX}px`;
-        win.style.top = `${e.clientY - offsetY}px`;
-      });
-
-      document.addEventListener("mouseup", () => (dragging = false));
-
-      // close button
-      close.addEventListener("click", () => win.remove());
-
-      // minimize
-      minimize.addEventListener("click", () => {
-        body.style.display = body.style.display === "none" ? "block" : "none";
-      });
-
-      // maximize
-      maximize.addEventListener("click", () => {
-        if (win.classList.contains("maximized")) {
-          win.style.top = win.dataset.prevTop;
-          win.style.left = win.dataset.prevLeft;
-          win.style.width = win.dataset.prevWidth;
-          win.style.height = win.dataset.prevHeight;
-          win.classList.remove("maximized");
-        } else {
-          win.dataset.prevTop = win.style.top;
-          win.dataset.prevLeft = win.style.left;
-          win.dataset.prevWidth = win.style.width;
-          win.dataset.prevHeight = win.style.height;
-          win.style.top = "0";
-          win.style.left = "0";
-          win.style.width = "100vw";
-          win.style.height = "100vh";
-          win.classList.add("maximized");
+        function ensurePath(path) {
+          // path: "Desktop" or "Documents"
+          const fs = fsLoad();
+          if (!fs[path]) fs[path] = {};
+          fsSave(fs);
+          return fs[path];
         }
-      });
-    }
 
-    // یک متغیر برای افزایش z-index برای اینکه پنجره بازشده جلو باشه
-    let topZ = 1000;
-    function bringToFront(el) {
-      topZ++;
-      el.style.zIndex = topZ;
-    }
+        function listFiles(folder) {
+          const fs = fsLoad();
+          return fs[folder]
+            ? Object.entries(fs[folder]).map(([name, meta]) => ({
+                name,
+                ...meta,
+              }))
+            : [];
+        }
 
-    window.openApp = window.openApp || function () {};
+        function readFile(folder, name) {
+          const fs = fsLoad();
+          return fs[folder] && fs[folder][name] ? fs[folder][name] : null;
+        }
 
-    window.openApp = function (el) {
-      const slug = el.dataset.app;
-      const name = el.dataset.name;
-      const htmlContent = JSON.parse('"' + el.dataset.html + '"');
-      const cssContent = JSON.parse('"' + el.dataset.css + '"');
-      const jsContent = JSON.parse('"' + el.dataset.js + '"');
+        function writeFile(folder, name, type, content) {
+          const fs = fsLoad();
+          if (!fs[folder]) fs[folder] = {};
+          fs[folder][name] = { type, content };
+          fsSave(fs);
+          return fs[folder][name];
+        }
 
-      let existing = document.getElementById(`window-${slug}`);
-      if (existing) {
-        existing.style.display = "block";
-        existing.classList.remove("minimized");
-        return;
-      }
+        function deleteFile(folder, name) {
+          const fs = fsLoad();
+          if (fs[folder] && fs[folder][name]) {
+            delete fs[folder][name];
+            fsSave(fs);
+            return true;
+          }
+          return false;
+        }
 
-      // ساخت پنجره برنامه
-      const windowDiv = document.createElement("div");
-      windowDiv.className = "app-window";
-      windowDiv.id = `window-${slug}`;
-      windowDiv.innerHTML = `
-    <div class="app-header">
-      <span>${name}</span>
-      <div class="window-buttons">
-        <button onclick="minimizeApp('${slug}')">—</button>
-        <button onclick="closeApp('${slug}')">×</button>
+        function renameFile(folder, oldName, newName) {
+          const fs = fsLoad();
+          if (!fs[folder] || !fs[folder][oldName]) return false;
+          fs[folder][newName] = fs[folder][oldName];
+          delete fs[folder][oldName];
+          fsSave(fs);
+          return true;
+        }
+
+        /* ======= UI builders ======= */
+        function openFileExplorer() {
+          const slug = "file-explorer";
+          const id = "window-" + slug;
+          if (HOST.OSMIND_APPS.has(slug) && qs("#" + id)) {
+            const w = qs("#" + id);
+            w.style.display = "block";
+            HOST.bringToFront(w);
+            return;
+          }
+
+          // create window
+          const win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = id;
+          win.style.left = "120px";
+          win.style.top = "120px";
+          win.style.width = "720px";
+          win.style.height = "480px";
+          win.innerHTML = `
+      <div class="app-header"><div class="title">File Explorer</div>
+        <div class="window-buttons">
+          <button class="minimize-btn">—</button>
+          <button class="close-btn">×</button>
+        </div>
       </div>
-    </div>
-    <div class="app-body">${htmlContent}</div>
-  `;
-      document.getElementById("window-container").appendChild(windowDiv);
+      <div class="app-body" style="display:flex;gap:12px;height:calc(100% - 44px);">
+        <div style="width:200px;border-right:1px solid rgba(255,255,255,0.04);padding-right:8px;overflow:auto">
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px;">
+            <button id="fe-new-file" class="btn-primary-osmind" style="width:100%">New File</button>
+            <button id="fe-new-folder" class="btn-ghost" style="width:100%">New Folder</button>
+            <label style="margin-top:8px;font-weight:600">Folders</label>
+            <div id="fe-folders" style="display:flex;flex-direction:column;gap:6px"></div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-weight:700;color:var(--osmind-theme)" id="fe-current-folder">Desktop</div>
+            <div style="flex:1"></div>
+            <input id="fe-search" placeholder="Search" style="padding:6px;border-radius:6px;border:none;background:rgba(255,255,255,0.03);color:#fff">
+            <button id="fe-upload" class="btn-ghost" style="margin-left:8px">Upload</button>
+            <button id="fe-download" class="btn-ghost" style="margin-left:4px">Download</button>
+          </div>
+          <div id="fe-file-list" style="flex:1;overflow:auto;padding:8px;display:flex;flex-wrap:wrap;gap:12px"></div>
+        </div>
+      </div>
+      `;
 
-      windowDiv.style.animation = "appOpen 0.3s ease";
+          // append to container
+          const container = qs("#window-container") || document.body;
+          container.appendChild(win);
+          HOST.makeDraggable(win);
+          HOST.bringToFront(win);
 
-      // ساخت آیکون در تسک‌بار
-      const taskbar = document.getElementById("taskbar");
-      if (!document.getElementById(`task-${slug}`)) {
-        const taskIcon = document.createElement("div");
-        taskIcon.className = "task-icon";
-        taskIcon.id = `task-${slug}`;
-        taskIcon.innerHTML = `<img src="${
-          el.querySelector("img").src
-        }" alt="${name}" style="width:28px;height:28px;">`;
-        taskIcon.onclick = () => toggleApp(slug);
-        taskbar.appendChild(taskIcon);
+          // register in host apps map
+          HOST.OSMIND_APPS.set(slug, {
+            name: "File Explorer",
+            win: win,
+            icon: "", // optional - could set to a data uri
+            visible: true,
+            minimized: false,
+          });
+          HOST.updateAppManagerUI();
+          HOST.updateTaskManagerUI();
+
+          // elements
+          const foldersEl = qs("#fe-folders", win);
+          const listEl = qs("#fe-file-list", win);
+          const curFolderEl = qs("#fe-current-folder", win);
+          const searchEl = qs("#fe-search", win);
+          const uploadBtn = qs("#fe-upload", win);
+          const downloadBtn = qs("#fe-download", win);
+          const newFileBtn = qs("#fe-new-file", win);
+
+          // state
+          let currentFolder = "Desktop";
+
+          function renderFolders() {
+            foldersEl.innerHTML = "";
+            const fs = fsLoad();
+            Object.keys(fs).forEach((f) => {
+              const b = document.createElement("div");
+              b.textContent = f;
+              b.style.padding = "8px";
+              b.style.borderRadius = "6px";
+              b.style.cursor = "pointer";
+              b.style.background =
+                f === currentFolder ? "rgba(255,255,255,0.04)" : "transparent";
+              b.onclick = () => {
+                currentFolder = f;
+                curFolderEl.textContent = f;
+                renderFolders();
+                renderFileList();
+              };
+              foldersEl.appendChild(b);
+            });
+          }
+
+          function renderFileList(filter = "") {
+            listEl.innerHTML = "";
+            const items = listFiles(currentFolder);
+            const query = (filter || "").toLowerCase();
+            items
+              .filter((it) => !query || it.name.toLowerCase().includes(query))
+              .forEach((it) => {
+                const card = document.createElement("div");
+                card.style.cssText =
+                  "width:140px;height:140px;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;";
+                const thumb = document.createElement("div");
+                thumb.style.width = "72px";
+                thumb.style.height = "72px";
+                thumb.style.borderRadius = "8px";
+                thumb.style.overflow = "hidden";
+                thumb.style.display = "flex";
+                thumb.style.alignItems = "center";
+                thumb.style.justifyContent = "center";
+                if (it.type === "image" && it.content) {
+                  const im = document.createElement("img");
+                  im.src = it.content;
+                  im.style.maxWidth = "100%";
+                  im.style.maxHeight = "100%";
+                  thumb.appendChild(im);
+                } else {
+                  thumb.style.background = "rgba(0,0,0,0.2)";
+                  thumb.innerHTML = `<div style="font-size:24px;color:var(--osmind-theme)">📄</div>`;
+                }
+                const name = document.createElement("div");
+                name.textContent = it.name;
+                name.style.fontSize = "13px";
+                name.style.textAlign = "center";
+                name.style.wordBreak = "break-word";
+
+                // actions on double-click: open viewer/editor
+                card.ondblclick = () => openFileViewer(currentFolder, it.name);
+
+                // context menu (right-click) for file ops
+                card.oncontextmenu = (ev) => {
+                  ev.preventDefault();
+                  showFileContextMenu(
+                    ev.pageX,
+                    ev.pageY,
+                    currentFolder,
+                    it.name,
+                    win
+                  );
+                };
+
+                card.appendChild(thumb);
+                card.appendChild(name);
+                listEl.appendChild(card);
+              });
+
+            if (items.length === 0) {
+              listEl.innerHTML = `<div style="color:#cfefe7;padding:12px">This folder is empty.</div>`;
+            }
+          }
+
+          function showFileContextMenu(x, y, folder, name, winRef) {
+            // remove old menu
+            const old = qs("#fe-context-menu");
+            if (old) old.remove();
+            const menu = document.createElement("div");
+            menu.id = "fe-context-menu";
+            menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:rgba(20,24,28,0.95);padding:8px;border-radius:8px;z-index:40000;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,0.5)`;
+            menu.innerHTML = `<div style="padding:8px;cursor:pointer" data-act="open">Open</div>
+                        <div style="padding:8px;cursor:pointer" data-act="rename">Rename</div>
+                        <div style="padding:8px;cursor:pointer" data-act="download">Download</div>
+                        <div style="padding:8px;color:#ff7b7b;cursor:pointer" data-act="delete">Delete</div>`;
+            document.body.appendChild(menu);
+            qsa("[data-act]", menu).forEach((it) => {
+              it.onclick = () => {
+                const act = it.dataset.act;
+                menu.remove();
+                if (act === "open") openFileViewer(folder, name);
+                if (act === "rename") {
+                  const newName = prompt("New name:", name);
+                  if (newName && newName !== name) {
+                    if (renameFile(folder, name, newName)) {
+                      renderFileList(searchEl.value);
+                      HOST.showNotification("Renamed.", "success");
+                    } else HOST.showNotification("Rename failed.", "error");
+                  }
+                }
+                if (act === "delete") {
+                  if (confirm("Delete " + name + " ?")) {
+                    deleteFile(folder, name);
+                    renderFileList(searchEl.value);
+                    HOST.showNotification("Deleted.", "info");
+                  }
+                }
+                if (act === "download") {
+                  const meta = readFile(folder, name);
+                  if (!meta)
+                    return HOST.showNotification("File not found.", "error");
+                  downloadMetaAsFile(name, meta);
+                }
+              };
+            });
+            // remove on outside click
+            document.addEventListener(
+              "click",
+              function __rm(e) {
+                if (!menu.contains(e.target)) menu.remove();
+                document.removeEventListener("click", __rm);
+              },
+              { once: true }
+            );
+          }
+
+          function openFileViewer(folder, name) {
+            const meta = readFile(folder, name);
+            if (!meta) return HOST.showNotification("File not found.", "error");
+            // small viewer/editor window
+            const vid = uid();
+            const vwin = document.createElement("div");
+            vwin.className = "app-window show";
+            vwin.style.left = "calc(50% - 280px)";
+            vwin.style.top = "140px";
+            vwin.style.width = "560px";
+            vwin.style.height = "420px";
+            vwin.innerHTML = `<div class="app-header"><div class="title">${name}</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div><div class="app-body" style="overflow:auto;padding:12px"></div>`;
+            const body = vwin.querySelector(".app-body");
+            if (meta.type === "text") {
+              body.innerHTML = `<textarea id="fe-editor-${vid}" style="width:100%;height:320px;background:rgba(0,0,0,0.5);color:#fff;padding:8px;border-radius:8px;border:none;resize:vertical">${
+                meta.content || ""
+              }</textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button id="fe-save-${vid}" class="btn-primary-osmind">Save</button><button id="fe-close-${vid}" class="btn-ghost">Close</button></div>`;
+              container.appendChild(vwin);
+              HOST.makeDraggable(vwin);
+              HOST.bringToFront(vwin);
+              const saveBtn = qs("#fe-save-" + vid, vwin);
+              const closeBtn = qs("#fe-close-" + vid, vwin);
+              saveBtn.onclick = () => {
+                const txt = qs("#fe-editor-" + vid, vwin).value;
+                writeFile(folder, name, "text", txt);
+                HOST.showNotification("Saved.", "success");
+                renderFileList(searchEl.value);
+              };
+              closeBtn.onclick = () => vwin.remove();
+              qs(".close-btn", vwin).onclick = () => vwin.remove();
+              qs(".minimize-btn", vwin).onclick = () =>
+                (vwin.style.display = "none");
+            } else if (meta.type === "image") {
+              body.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><img id="fe-img-${vid}" src="${meta.content}" style="max-width:100%;max-height:320px;border-radius:8px"/><div style="display:flex;gap:8px"><button id="fe-downloadimg-${vid}" class="btn-primary-osmind">Download</button><button id="fe-closeimg-${vid}" class="btn-ghost">Close</button></div></div>`;
+              container.appendChild(vwin);
+              HOST.makeDraggable(vwin);
+              HOST.bringToFront(vwin);
+              qs("#fe-downloadimg-" + vid, vwin).onclick = () =>
+                downloadMetaAsFile(name, meta);
+              qs("#fe-closeimg-" + vid, vwin).onclick = () => vwin.remove();
+              qs(".close-btn", vwin).onclick = () => vwin.remove();
+              qs(".minimize-btn", vwin).onclick = () =>
+                (vwin.style.display = "none");
+            } else {
+              body.innerHTML = `<div>Unknown file type</div><button class="btn-ghost" onclick="this.closest('.app-window').remove()">Close</button>`;
+              container.appendChild(vwin);
+              HOST.makeDraggable(vwin);
+              HOST.bringToFront(vwin);
+            }
+          }
+
+          function downloadMetaAsFile(name, meta) {
+            if (meta.type === "text") {
+              const blob = new Blob([meta.content || ""], {
+                type: "text/plain;charset=utf-8",
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = name;
+              a.click();
+              URL.revokeObjectURL(url);
+            } else if (meta.type === "image") {
+              // content is data URL
+              const a = document.createElement("a");
+              a.href = meta.content || "";
+              a.download = name;
+              a.click();
+            } else {
+              HOST.showNotification("Unsupported download type", "error");
+            }
+          }
+
+          // upload handling
+          uploadBtn.onclick = () => {
+            const f = document.getElementById("fe-hidden-upload");
+            if (f) f.remove();
+            const inp = document.createElement("input");
+            inp.type = "file";
+            inp.id = "fe-hidden-upload";
+            inp.accept = "image/*,text/plain";
+            inp.onchange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const reader = new FileReader();
+              if (file.type.startsWith("image/")) {
+                reader.onload = () => {
+                  const name = file.name;
+                  writeFile(currentFolder, name, "image", reader.result);
+                  renderFileList(searchEl.value);
+                  HOST.showNotification("Image uploaded.", "success");
+                };
+                reader.readAsDataURL(file);
+              } else {
+                reader.onload = () => {
+                  const name = file.name.endsWith(".txt")
+                    ? file.name
+                    : file.name + ".txt";
+                  writeFile(currentFolder, name, "text", reader.result);
+                  renderFileList(searchEl.value);
+                  HOST.showNotification("File uploaded.", "success");
+                };
+                reader.readAsText(file);
+              }
+            };
+            document.body.appendChild(inp);
+            inp.click();
+          };
+
+          // download selected folder as simple zip-like: just download all text files concatenated (simple fallback)
+          downloadBtn.onclick = () => {
+            const items = listFiles(currentFolder);
+            if (items.length === 0)
+              return HOST.showNotification("Nothing to download.", "info");
+            // if only one selected? We'll provide simple behavior: if single file -> download; else create a zip-like text
+            if (items.length === 1) {
+              downloadMetaAsFile(items[0].name, items[0]);
+            } else {
+              // create a JSON dump of folder
+              const obj = {};
+              items.forEach((it) => (obj[it.name] = it));
+              const blob = new Blob([JSON.stringify(obj, null, 2)], {
+                type: "application/json",
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = currentFolder + ".json";
+              a.click();
+              URL.revokeObjectURL(url);
+            }
+          };
+
+          // new file / new folder
+          newFileBtn.onclick = () => {
+            const name = prompt(
+              "Filename (example: notes.txt):",
+              "new-file.txt"
+            );
+            if (!name) return;
+            writeFile(currentFolder, name, "text", "");
+            renderFileList(searchEl.value);
+            HOST.showNotification("File created.", "success");
+          };
+
+          qs("#fe-new-folder", win).onclick = () => {
+            const name = prompt("Folder name:", "NewFolder");
+            if (!name) return;
+            const fs = fsLoad();
+            if (fs[name])
+              return HOST.showNotification("Folder exists.", "error");
+            fs[name] = {};
+            fsSave(fs);
+            renderFolders();
+            HOST.showNotification("Folder created.", "success");
+          };
+
+          // search
+          searchEl.oninput = () => renderFileList(searchEl.value);
+
+          // window control buttons
+          qs(".close-btn", win).onclick = () => {
+            win.classList.add("closing");
+            setTimeout(() => {
+              try {
+                win.remove();
+              } catch {}
+              HOST.OSMIND_APPS.delete(slug);
+              HOST.updateAppManagerUI();
+              HOST.updateTaskManagerUI();
+            }, 200);
+          };
+          qs(".minimize-btn", win).onclick = () => (win.style.display = "none");
+
+          // initial render
+          renderFolders();
+          renderFileList();
+
+          // small helper: attach to desktop icons (if user wants)
+          window.openFileExplorerFromIcon = function (el) {
+            // call openFileExplorer and optionally focus
+            openFileExplorer();
+          };
+        } // end openFileExplorer
+
+        // expose globally
+        window.openFileExplorer = openFileExplorer;
+      })();
+    </script> -->
+
+    <script>
+      // === IndexedDB helper ===
+      function openPhotoDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open("OSMIND_Photos_DB", 1);
+          request.onupgradeneeded = function (event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("photos")) {
+              db.createObjectStore("photos", {
+                keyPath: "id",
+                autoIncrement: true,
+              });
+            }
+          };
+          request.onsuccess = (event) => resolve(event.target.result);
+          request.onerror = (event) => reject(event.target.error);
+        });
       }
 
-      // اضافه کردن CSS و JS اختصاصی
-      if (cssContent.trim()) {
-        const styleTag = document.createElement("style");
-        styleTag.textContent = cssContent;
-        windowDiv.appendChild(styleTag);
-      }
-
-      if (jsContent.trim()) {
-        const scriptTag = document.createElement("script");
-        scriptTag.textContent = jsContent;
-        windowDiv.appendChild(scriptTag);
-      }
-
-      makeDraggable(windowDiv);
-      setupWindow(windowDiv);
-      bringToFront(windowDiv);
-    };
-
-    function makeDraggable(el) {
-      const header = el.querySelector(".app-header");
-      if (!header) return;
-
-      let offsetX = 0,
-        offsetY = 0,
-        isDragging = false;
-
-      header.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        el.style.left = e.clientX - offsetX + "px";
-        el.style.top = e.clientY - offsetY + "px";
-      });
-
-      document.addEventListener("mouseup", () => (isDragging = false));
-    }
-
-    window.minimizeApp = function (slug) {
-      const app = document.getElementById(`window-${slug}`);
-      if (app) {
-        app.classList.add("closing");
-        setTimeout(() => {
-          app.style.display = "none";
-          app.classList.remove("closing");
-        }, 300); // زمان هماهنگ با انیمیشن
-      }
-    };
-
-    window.closeApp = function (slug) {
-      const app = document.getElementById(`window-${slug}`);
-      const task = document.getElementById(`task-${slug}`);
-      if (app) {
-        app.classList.add("closing");
-        setTimeout(() => {
-          app.remove();
-          if (task) task.remove();
-        }, 400); // کمی بیشتر از زمان انیمیشن
-      }
-    };
-
-    window.toggleApp = function (slug) {
-      const app = document.getElementById(`window-${slug}`);
-      if (!app) return;
-
-      if (app.classList.contains("hidden")) {
-        app.classList.remove("hidden");
-        app.style.display = "block";
-        setTimeout(() => app.classList.remove("minimized"), 10);
-      } else {
-        app.classList.add("minimized");
-        setTimeout(() => app.classList.add("hidden"), 300);
-      }
-    };
-
-    // 🎯 هدف منو و دسکتاپ
-    const desktop = document.getElementById("desktop-area");
-    const contextMenu = document.getElementById("context-menu");
-
-    // باز کردن منو در محل کلیک
-    desktop.addEventListener("contextmenu", (e) => {
-      e.preventDefault(); // جلوگیری از منوی پیش‌فرض مرورگر
-
-      // موقعیت ماوس
-      contextMenu.style.top = `${e.clientY}px`;
-      contextMenu.style.left = `${e.clientX}px`;
-      contextMenu.style.display = "block";
-    });
-
-    // بستن منو با کلیک بیرون
-    document.addEventListener("click", (e) => {
-      if (!contextMenu.contains(e.target)) {
-        contextMenu.style.display = "none";
-      }
-    });
-
-    // 🔄 تابع رفرش دسکتاپ
-    function refreshDesktop() {
-      // بستن منوی راست‌کلیک (در صورت باز بودن)
-      const contextMenu = document.getElementById("context-menu");
-      if (contextMenu) contextMenu.style.display = "none";
-
-      // نمایش انیمیشن یا افکت برای حس رفرش واقعی
-      const desktop = document.getElementById("desktop-area");
-      desktop.style.opacity = "0.4";
-      desktop.style.transition = "opacity 0.3s";
-
-      setTimeout(() => {
-        // بازگرداندن ظاهر عادی
-        desktop.style.opacity = "1";
-
-        // 🔁 رفرش داده‌ها (فعلاً ساده: فقط رفرش کامل صفحه)
-        location.reload(); // می‌تونی بعداً این رو هوشمندش کنی
-      }, 300);
-    }
-
-    function changeWallpaper() {
-      const input = document.getElementById("wallpaperInput");
-      input.click();
-
-      input.onchange = function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const desktop = document.getElementById("desktop-area");
-          desktop.style.background = `url(${e.target.result}) center/cover no-repeat`;
-          localStorage.setItem("wallpaper", e.target.result); // برای ذخیره در session
-        };
-        reader.readAsDataURL(file);
-      };
-    }
-
-    // وقتی صفحه رفرش شد، پس‌زمینه قبلی رو برگردون:
-    window.addEventListener("load", () => {
-      const savedWallpaper = localStorage.getItem("wallpaper");
-      if (savedWallpaper) {
-        document.getElementById(
-          "desktop-area"
-        ).style.background = `url(${savedWallpaper}) center/cover no-repeat`;
-      }
-    });
-
-    function changeWallpaper() {
-      document.getElementById("wallpaperPopup").style.display = "block";
-    }
-
-    function closeWallpaperPopup() {
-      document.getElementById("wallpaperPopup").style.display = "none";
-      document.getElementById("wallpaperURL").value = "";
-    }
-
-    function chooseWallpaperFile() {
-      document.getElementById("wallpaperFile").click();
-    }
-
-    // اگر کاربر از فایل خودش استفاده کرد
-    document
-      .getElementById("wallpaperFile")
-      .addEventListener("change", function (e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          applyWallpaperBackground(event.target.result);
-        };
-        reader.readAsDataURL(file);
-        closeWallpaperPopup();
-      });
-
-    function applyWallpaper() {
-      const url = document.getElementById("wallpaperURL").value.trim();
-      if (url) {
-        applyWallpaperBackground(url);
-        closeWallpaperPopup();
-      }
-    }
-
-    function applyWallpaperBackground(imageSrc) {
-      const desktop = document.getElementById("desktop-area");
-      desktop.style.background = `url(${imageSrc}) center/cover no-repeat`;
-      localStorage.setItem("wallpaper", imageSrc);
-    }
-
-    // موقع لود صفحه، والپیپر ذخیره‌شده رو لود کن
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("wallpaper");
-      if (saved) {
-        document.getElementById(
-          "desktop-area"
-        ).style.background = `url(${saved}) center/cover no-repeat`;
-      }
-    });
-
-    // 📁 انتخاب فایل
-    function openFilePicker() {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          applyWallpaper(event.target.result);
-        };
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    }
-
-    // 🌐 وارد کردن لینک تصویر
-    function openURLPopup() {
-      const modal = document.getElementById("wallpaper-url-modal");
-      const input = document.getElementById("wallpaper-url-input");
-      const preview = document.getElementById("wallpaper-preview");
-      const applyBtn = document.getElementById("apply-wallpaper-btn");
-      const cancelBtn = document.getElementById("cancel-wallpaper-btn");
-
-      modal.style.display = "flex";
-      input.value = "";
-      preview.style.display = "none";
-
-      input.oninput = () => {
-        const url = input.value.trim();
-        if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-          preview.src = url;
-          preview.style.display = "block";
-        } else {
-          preview.style.display = "none";
+      async function savePhotoToDB(name, dataUrl) {
+        try {
+          const db = await openPhotoDB();
+          const tx = db.transaction("photos", "readwrite");
+          const store = tx.objectStore("photos");
+          await store.add({
+            name: name,
+            data: dataUrl,
+            created: new Date().toISOString(),
+          });
+          await tx.done;
+          console.log("✅ Photo saved in IndexedDB:", name);
+        } catch (err) {
+          console.error("❌ Error saving photo:", err);
         }
-      };
-    }
+      }
 
-      applyBtn.onclick = () => {
-        const url = input.value.trim();
-        if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-          applyWallpaper(url);
-          modal.style.display = "none";
-        } else {
-          alert("Please enter a valid image URL.");
+      async function getAllPhotos() {
+        const db = await openPhotoDB();
+        const tx = db.transaction("photos", "readonly");
+        const store = tx.objectStore("photos");
+        return new Promise((resolve, reject) => {
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = (e) => reject(e);
+        });
+      }
+
+      async function loadPicturesFromDB() {
+        const photos = await getAllPhotos();
+        const container = document.getElementById("file-list");
+        if (!container) return;
+        container.innerHTML = "";
+        photos.forEach((photo) => {
+          const div = document.createElement("div");
+          div.className = "photo-thumb";
+          div.innerHTML = `
+      <img src="${photo.data}" style="width:100%;border-radius:8px;">
+      <div style="color:#fff;font-size:12px;text-align:center">${photo.name}</div>
+    `;
+          container.appendChild(div);
+        });
+      }
+
+      (function () {
+        /* OSMIND — File Explorer + Notepad integrated into main frontend script
+     Paste in place of existing script. */
+        /* ----------------- Helpers ----------------- */
+        function qs(sel, root = document) {
+          try {
+            return (root || document).querySelector(sel);
+          } catch {
+            return null;
+          }
+        }
+        function qsa(sel, root = document) {
+          try {
+            return Array.from((root || document).querySelectorAll(sel));
+          } catch {
+            return [];
+          }
+        }
+        function clamp(v, a, b) {
+          return Math.min(b, Math.max(a, v));
+        }
+        function safeGetAttr(el, name) {
+          return el ? el.getAttribute(name) : null;
+        }
+        function escapeHtml(s) {
+          return (s + "").replace(
+            /[&<>"']/g,
+            (m) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;`",
+                '"': "&quot;",
+                "'": "&#39;",
+              }[m] || m)
+          );
+        }
+        function decodeDataString(raw) {
+          if (!raw) return "";
+          try {
+            return JSON.parse('"' + raw.replace(/"/g, '\\"') + '"');
+          } catch {
+            return raw;
+          }
+        }
+
+        /* ----------------- Sounds (safe) ----------------- */
+        const OSMIND_SOUNDS = {};
+        const SOUND_LIST = {
+          boot: "/static/sounds/osmind-boot.wav",
+          notify_success: "/static/sounds/notify-success.wav",
+          notify_error: "/static/sounds/notify-error.wav",
+          notify_info: "/static/sounds/notify-info.mp3",
+          open: "/static/sounds/window-open.wav",
+        };
+        Object.entries(SOUND_LIST).forEach(([k, p]) => {
+          try {
+            const a = new Audio(p);
+            a.volume = 0.4;
+            OSMIND_SOUNDS[k] = a;
+          } catch {
+            OSMIND_SOUNDS[k] = null;
+          }
+        });
+        function playSound(name) {
+          try {
+            const s = OSMIND_SOUNDS[name];
+            if (!s) return;
+            const p = s.play && s.play();
+            if (p && typeof p.then === "function") p.catch(() => {});
+          } catch (e) {
+            console.warn("playSound err:", e);
+          }
+        }
+
+        /* ----------------- Notifications ----------------- */
+        function ensureNotificationContainer() {
+          let c = qs("#osmind-notifications");
+          if (!c) {
+            c = document.createElement("div");
+            c.id = "osmind-notifications";
+            c.style.cssText =
+              "position:fixed;right:16px;top:16px;z-index:30000;display:flex;flex-direction:column;gap:8px;";
+            document.body.appendChild(c);
+          }
+          return c;
+        }
+        function showNotification(message, type = "info", duration = 4000) {
+          const container = ensureNotificationContainer();
+          const t = document.createElement("div");
+          t.className = `osmind-toast ${type}`;
+          t.style.cssText =
+            "background:rgba(0,0,0,0.65);color:white;padding:10px 12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.35);max-width:320px;";
+          t.innerHTML = `<strong style="display:block;margin-bottom:6px">${type.toUpperCase()}</strong><div style="font-size:13px">${message}</div>`;
+          container.appendChild(t);
+          playSound(
+            type === "success"
+              ? "notify_success"
+              : type === "error"
+              ? "notify_error"
+              : "notify_info"
+          );
+          setTimeout(() => {
+            t.style.transition = "opacity .32s, transform .32s";
+            t.style.opacity = 0;
+            t.style.transform = "translateY(-8px)";
+            setTimeout(() => t.remove(), 380);
+          }, duration);
+        }
+
+        /* ----------------- z-index & registry ----------------- */
+        let globalZ = 1200;
+        function bringToFront(el) {
+          if (!el) return;
+          globalZ++;
+          el.style.zIndex = globalZ;
+        }
+        const OSMIND_APPS = new Map(); // slug -> {name,win,icon,visible,minimized}
+
+        /* ----------------- Drag manager ----------------- */
+        let activeDrag = null;
+        document.addEventListener("mousemove", (e) => {
+          if (!activeDrag) return;
+          const { win, offsetX, offsetY } = activeDrag;
+          const left = clamp(
+            e.clientX - offsetX,
+            0,
+            Math.max(0, window.innerWidth - win.offsetWidth)
+          );
+          const top = clamp(
+            e.clientY - offsetY,
+            0,
+            Math.max(0, window.innerHeight - (win.offsetHeight > 60 ? 60 : 0))
+          );
+          win.style.left = left + "px";
+          win.style.top = top + "px";
+        });
+        document.addEventListener("mouseup", () => {
+          if (!activeDrag) return;
+          try {
+            activeDrag.header.style.cursor = "grab";
+          } catch {}
+          activeDrag = null;
+        });
+        function makeDraggable(win) {
+          if (!win) return;
+          const header = qs(".app-header", win);
+          if (!header) return;
+          header.style.cursor = "grab";
+          header.onmousedown = (e) => {
+            if (e.button !== 0) return;
+            bringToFront(win);
+            activeDrag = {
+              win,
+              header,
+              offsetX: e.clientX - win.offsetLeft,
+              offsetY: e.clientY - win.offsetTop,
+            };
+            header.style.cursor = "grabbing";
+            e.preventDefault();
+          };
+          win.style.resize = "both";
+          win.style.overflow = "auto";
+          win.style.pointerEvents = "auto";
+        }
+
+        /* ----------------- Window sizing helper ----------------- */
+        function setWindowSizeFromContent(win, w, h) {
+          const vw = Math.max(
+            document.documentElement.clientWidth,
+            window.innerWidth || 0
+          );
+          const vh = Math.max(
+            document.documentElement.clientHeight,
+            window.innerHeight || 0
+          );
+          win.style.width = clamp(w || 520, 320, Math.max(320, vw - 48)) + "px";
+          win.style.height =
+            clamp(h || 360, 220, Math.max(220, vh - 80)) + "px";
+        }
+
+        /* ----------------- Clock & Battery ----------------- */
+        function updateClock() {
+          const now = new Date();
+          const timeEl = qs("#time-display") || qs("#topbar-time");
+          const dateEl = qs("#date-display") || qs("#topbar-date");
+          if (timeEl)
+            timeEl.textContent = now.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          if (dateEl)
+            dateEl.textContent = now.toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        async function updateBattery() {
+          const p = qs("#battery-percentage"),
+            b = qs("#battery-level");
+          if (!("getBattery" in navigator)) {
+            if (p) p.textContent = "N/A";
+            return;
+          }
+          try {
+            const bat = await navigator.getBattery();
+            const apply = () => {
+              const lvl = Math.round(bat.level * 100);
+              if (p) p.textContent = lvl + "%";
+              if (b) b.style.width = lvl + "%";
+              if (b)
+                b.style.background = bat.charging
+                  ? "#00bcd4"
+                  : lvl > 80
+                  ? "#4caf50"
+                  : lvl > 40
+                  ? "#ffeb3b"
+                  : lvl > 15
+                  ? "#ff9800"
+                  : "#f44336";
+            };
+            apply();
+            bat.addEventListener("levelchange", apply);
+            bat.addEventListener("chargingchange", apply);
+          } catch (e) {
+            if (p) p.textContent = "N/A";
+          }
+        }
+
+        /* ----------------- Context menu wiring (desktop) ----------------- */
+        const ctx = qs("#osmind-context-menu");
+        document.addEventListener("contextmenu", (e) => {
+          if (
+            e.target.closest(
+              '.app-window, input, textarea, select, [contenteditable="true"]'
+            )
+          )
+            return;
+          const desktop = qs("#desktop-area");
+          if (!desktop || !desktop.contains(e.target)) return;
+          if (!ctx) return;
+          e.preventDefault();
+          ctx.style.left = e.pageX + "px";
+          ctx.style.top = e.pageY + "px";
+          ctx.style.display = "block";
+          ctx.setAttribute("aria-hidden", "false");
+          bringToFront(ctx);
+        });
+        document.addEventListener("click", (e) => {
+          if (!ctx) return;
+          if (!ctx.contains(e.target)) {
+            ctx.style.display = "none";
+            ctx.setAttribute("aria-hidden", "true");
+          }
+        });
+        if (qs("#context-refresh"))
+          qs("#context-refresh").onclick = () => {
+            if (ctx) ctx.style.display = "none";
+            quickRefresh();
+          };
+        if (qs("#context-settings"))
+          qs("#context-settings").onclick = () => {
+            if (ctx) ctx.style.display = "none";
+            openSettings();
+          };
+        if (qs("#context-about"))
+          qs("#context-about").onclick = () => {
+            if (ctx) ctx.style.display = "none";
+            openAbout();
+          };
+        if (qs("#context-wallpaper"))
+          qs("#context-wallpaper").onclick = () => {
+            if (ctx) ctx.style.display = "none";
+            openWallpaperDialog();
+          };
+
+        /* ----------------- Topbar/system menu ----------------- */
+        function initTopBar() {
+          const b1 = qs("#btn-settings");
+          if (b1) b1.onclick = () => openSettings();
+          const b2 = qs("#btn-task");
+          if (b2) b2.onclick = () => openTaskManager();
+          const logo = qs("#osmind-logo");
+          if (logo) logo.onclick = () => openSystemMenu();
+        }
+        function openSystemMenu() {
+          let menu = qs("#osmind-system-menu");
+          if (menu) {
+            menu.remove();
+            return;
+          }
+          menu = document.createElement("div");
+          menu.id = "osmind-system-menu";
+          menu.style.cssText =
+            "position:fixed;top:48px;left:16px;background:rgba(20,24,28,0.95);backdrop-filter:blur(10px);border-radius:10px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,0.3);color:white;z-index:4000;";
+          menu.innerHTML = `<div class="sysmenu-item" data-action="settings">⚙ Settings</div><div class="sysmenu-item" data-action="about">ℹ About</div><div class="sysmenu-item" data-action="refresh">🔄 Refresh</div><div class="sysmenu-item" data-action="shutdown">⏻ Power Off</div>`;
+          document.body.appendChild(menu);
+          qsa(".sysmenu-item", menu).forEach((it) => {
+            it.style.padding = "8px 14px";
+            it.style.cursor = "pointer";
+            it.style.borderRadius = "6px";
+            it.addEventListener(
+              "mouseover",
+              () => (it.style.background = "rgba(255,255,255,0.05)")
+            );
+            it.addEventListener(
+              "mouseout",
+              () => (it.style.background = "transparent")
+            );
+            it.addEventListener("click", () => {
+              const a = it.dataset.action;
+              if (a === "settings") openSettings();
+              if (a === "about") openAbout();
+              if (a === "refresh") quickRefresh();
+              if (a === "shutdown") shutdownOSMIND();
+              try {
+                menu.remove();
+              } catch {}
+            });
+          });
+          document.addEventListener(
+            "click",
+            function onDoc(e) {
+              if (!menu.contains(e.target) && e.target.id !== "osmind-logo")
+                menu.remove();
+            },
+            { once: true }
+          );
+        }
+        function shutdownOSMIND() {
+          const overlay = document.createElement("div");
+          overlay.style.cssText =
+            "position:fixed;inset:0;background:black;display:flex;align-items:center;justify-content:center;color:var(--osmind-theme);font-size:48px;z-index:99999;font-family:monospace;";
+          overlay.innerHTML = "OSMIND is shutting down...";
+          document.body.appendChild(overlay);
+          setTimeout(() => window.location.reload(), 1800);
+        }
+        window.addEventListener("DOMContentLoaded", initTopBar);
+
+        /* ----------------- Quick refresh ----------------- */
+        function quickRefresh() {
+          qsa(".app-window").forEach((w) => w.remove());
+          OSMIND_APPS.clear();
+          updateAppManagerUI();
+          updateTaskManagerUI();
+          const ov = document.createElement("div");
+          ov.style.cssText =
+            "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:20000";
+          ov.innerHTML = `<div style="color:var(--osmind-theme);text-align:center"><div style="font-size:48px">OSMIND</div><div style="margin-top:12px;color:white">Refreshing...</div></div>`;
+          document.body.appendChild(ov);
+          setTimeout(() => ov.remove(), 900);
+          showNotification("Desktop refreshed successfully!", "info");
+        }
+
+        /* ----------------- Wallpaper helpers ----------------- */
+        function applyWallpaperSrc(src) {
+          const desk = qs("#desktop-area");
+          if (!desk) return;
+          if (src) {
+            desk.style.background = `url('${src}') center/cover no-repeat`;
+            localStorage.setItem("osmind_wallpaper", src);
+          } else {
+            desk.style.background = "linear-gradient(135deg,#0f1720,#071018)";
+            localStorage.removeItem("osmind_wallpaper");
+          }
+        }
+        function openWallpaperDialog() {
+          const choice = confirm(
+            "Click OK to upload a file, Cancel to enter URL."
+          );
+          if (choice) {
+            const f = qs("#wallpaperFile");
+            if (!f) {
+              showNotification("No file input available.", "info");
+              return;
+            }
+            f.value = "";
+            f.onchange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const r = new FileReader();
+              r.onload = () => applyWallpaperSrc(r.result);
+              r.readAsDataURL(file);
+            };
+            f.click();
+          } else {
+            const url = prompt("Enter wallpaper image URL (https...):");
+            if (url) applyWallpaperSrc(url);
+          }
+        }
+
+        /* ----------------- App open/close/minimize/restore ----------------- */
+        function openApp(el) {
+          if (!el) return;
+          const slug =
+            safeGetAttr(el, "data-app") ||
+            "app-" + Math.random().toString(36).slice(2, 8);
+          const name = safeGetAttr(el, "data-name") || "App";
+          const rawHtml = safeGetAttr(el, "data-html") || "";
+          const rawCss = safeGetAttr(el, "data-css") || "";
+          const rawJs = safeGetAttr(el, "data-js") || "";
+
+          const existing = qs("#window-" + slug);
+          if (existing) {
+            existing.style.display = "block";
+            bringToFront(existing);
+            const app = OSMIND_APPS.get(slug);
+            if (app) {
+              app.visible = true;
+              app.minimized = false;
+            }
+            updateAppManagerUI();
+            updateTaskManagerUI();
+            return;
+          }
+
+          const win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = "window-" + slug;
+          win.style.left = 100 + Math.floor(Math.random() * 80) + "px";
+          win.style.top = 80 + Math.floor(Math.random() * 60) + "px";
+          setWindowSizeFromContent(win, 520, 360);
+          win.innerHTML = `<div class="app-header"><div class="title">${escapeHtml(
+            name
+          )}</div><div class="window-buttons"><button class="minimize-btn" title="Minimize">—</button><button class="close-btn" title="Close">×</button></div></div><div class="app-body">${decodeDataString(
+            rawHtml
+          )}</div>`;
+          (qs("#window-container") || document.body).appendChild(win);
+
+          if (rawCss && rawCss.trim()) {
+            const st = document.createElement("style");
+            st.textContent = decodeDataString(rawCss);
+            win.appendChild(st);
+          }
+          if (rawJs && rawJs.trim()) {
+            const sc = document.createElement("script");
+            sc.type = "text/javascript";
+            sc.text = decodeDataString(rawJs);
+            win.appendChild(sc);
+          }
+
+          const icon =
+            (el.querySelector &&
+              el.querySelector("img") &&
+              el.querySelector("img").src) ||
+            "";
+          OSMIND_APPS.set(slug, {
+            name,
+            win,
+            icon,
+            visible: true,
+            minimized: false,
+          });
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+
+          const closeBtn = qs(".close-btn", win);
+          const minBtn = qs(".minimize-btn", win);
+          if (closeBtn)
+            closeBtn.addEventListener("click", () => closeApp(slug));
+          if (minBtn) minBtn.addEventListener("click", () => minimizeApp(slug));
+          updateAppManagerUI();
+          updateTaskManagerUI();
+          window.saveToPicturesFolder = function (dataUrl) {
+            try {
+              console.log(
+                "📸 saveToPicturesFolder called with dataUrl:",
+                dataUrl.slice(0, 50)
+              );
+              const fsStr = localStorage.getItem("osmind_fs_v1");
+              const fs = fsStr
+                ? JSON.parse(fsStr)
+                : { type: "folder", name: "root", children: [] };
+
+              let pics = fs.children.find((c) => c.name === "Pictures");
+              if (!pics) {
+                pics = { type: "folder", name: "Pictures", children: [] };
+                fs.children.push(pics);
+              }
+
+              const fileName =
+                "photo_" +
+                new Date().toISOString().replace(/[:.]/g, "-") +
+                ".png";
+              pics.children.push({
+                type: "file",
+                name: fileName,
+                content: dataUrl,
+              });
+
+              localStorage.setItem("osmind_fs_v1", JSON.stringify(fs));
+              console.log("✅ Saved photo to Pictures:", fileName);
+              if (window.showNotification)
+                showNotification(`📸 Photo saved to Pictures`, "success");
+            } catch (e) {
+              console.error("❌ Error saving photo:", e);
+              if (window.showNotification)
+                showNotification(`Failed to save photo`, "error");
+            }
+
+            if (typeof window.renderFileExplorer === "function") {
+              window.renderFileExplorer();
+            }
+          };
+        }
+        function closeApp(slug) {
+          const app = OSMIND_APPS.get(slug);
+          if (!app) return;
+          const win = app.win;
+          if (win) win.classList.add("closing");
+          setTimeout(() => {
+            if (win && win.parentElement) win.remove();
+            OSMIND_APPS.delete(slug);
+            const task = qs("#task-" + slug);
+            if (task) task.remove();
+            updateAppManagerUI();
+            updateTaskManagerUI();
+            showNotification(`${app.name} closed.`, "info");
+          }, 220);
+        }
+        function minimizeApp(slug) {
+          const app = OSMIND_APPS.get(slug);
+          if (!app) return;
+          if (app.win) app.win.style.display = "none";
+          app.visible = false;
+          app.minimized = true;
+          updateAppManagerUI();
+          updateTaskManagerUI();
+        }
+        function restoreApp(slug) {
+          const app = OSMIND_APPS.get(slug);
+          if (!app) return;
+          if (app.win) {
+            app.win.style.display = "block";
+            bringToFront(app.win);
+          }
+          app.visible = true;
+          app.minimized = false;
+          updateAppManagerUI();
+          updateTaskManagerUI();
+        }
+
+        /* ----------------- Taskbar rendering ----------------- */
+        function updateAppManagerUI() {
+          const container = qs("#taskbar");
+          if (!container) return;
+          container.innerHTML = "";
+          for (const [slug, app] of OSMIND_APPS.entries()) {
+            const item = document.createElement("div");
+            item.className = "taskbar-item";
+            item.id = "task-" + slug;
+            item.title = app.name;
+            item.style.opacity = app.visible ? "1" : "0.6";
+            item.style.display = "inline-flex";
+            item.style.alignItems = "center";
+            item.style.gap = "6px";
+            item.style.padding = "4px 8px";
+            item.innerHTML = `<img src="${app.icon}" style="width:26px;height:26px;border-radius:6px;object-fit:cover">`;
+            item.addEventListener("click", () => {
+              if (app.visible) minimizeApp(slug);
+              else restoreApp(slug);
+            });
+            container.appendChild(item);
+          }
+        }
+
+        /* ----------------- Task Manager ----------------- */
+        function openTaskManager() {
+          const slug = "osmind-task-manager";
+          const id = "window-" + slug;
+          let win = qs("#" + id);
+          if (win) {
+            win.style.display = "block";
+            bringToFront(win);
+            updateTaskManagerUI();
+            return;
+          }
+          win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = id;
+          win.style.left = "calc(50% - 300px)";
+          win.style.top = "90px";
+          win.style.width = "600px";
+          win.style.height = "400px";
+          win.innerHTML = `<div class="app-header"><div class="title">Task Manager</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div><div class="app-body"><div style="display:flex;flex-direction:column;gap:8px;"><div style="display:flex;gap:8px;align-items:center"><strong style="color:var(--osmind-theme)">Processes</strong><div style="flex:1"></div><button id="tm-refresh" class="btn-ghost">Refresh</button></div><div id="tm-list" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto"></div></div></div>`;
+          qs("#window-container").appendChild(win);
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+          const cclose = qs(".close-btn", win);
+          if (cclose) cclose.onclick = () => win.remove();
+          const minb = qs(".minimize-btn", win);
+          if (minb) minb.onclick = () => (win.style.display = "none");
+          const tr = qs("#tm-refresh", win);
+          if (tr) tr.onclick = updateTaskManagerUI;
+          updateTaskManagerUI();
+          updateAppManagerUI();
+        }
+        function updateTaskManagerUI() {
+          const win = qs("#window-osmind-task-manager");
+          if (!win) return;
+          const list = qs("#tm-list", win);
+          if (!list) return;
+          list.innerHTML = "";
+          for (const [slug, app] of OSMIND_APPS.entries()) {
+            const row = document.createElement("div");
+            row.style.cssText =
+              "display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)";
+            row.innerHTML = `<img src="${
+              app.icon
+            }" style="width:34px;height:34px;border-radius:6px;object-fit:cover"><div style="flex:1"><div style="font-weight:600;color:#e8fdf5">${
+              app.name
+            }</div><div style="font-size:12px;color:#cfefe8">${
+              app.minimized ? "Minimized" : "Running"
+            }</div></div><div style="display:flex;gap:8px"><button class="btn-ghost tm-focus" data-app="${slug}">Focus</button><button class="btn-ghost tm-end" data-app="${slug}">End</button></div>`;
+            list.appendChild(row);
+          }
+          qsa(".tm-focus", list).forEach(
+            (btn) => (btn.onclick = () => restoreApp(btn.dataset.app))
+          );
+          qsa(".tm-end", list).forEach(
+            (btn) => (btn.onclick = () => closeApp(btn.dataset.app))
+          );
+        }
+
+        /* ----------------- Settings & About (kept minimal) ----------------- */
+        function openSettings() {
+          /* existing pattern kept simple */ const id =
+            "window-osmind-settings";
+          if (qs("#" + id)) {
+            qs("#" + id).style.display = "block";
+            bringToFront(qs("#" + id));
+            return;
+          }
+          const win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = id;
+          win.style.left = "calc(50% - 320px)";
+          win.style.top = "100px";
+          win.style.width = "640px";
+          win.style.height = "420px";
+          win.innerHTML = `<div class="app-header"><div class="title">OSMIND Settings</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div><div class="app-body"><div class="settings-tabs" style="display:flex;gap:8px;margin-bottom:12px"><button data-tab="general" class="active">General</button><button data-tab="wallpaper">Wallpaper</button><button data-tab="about">About</button></div><div id="tab-general" class="tab-panel"><div class="setting-row"><label>Theme color</label><input id="theme-color" type="color" value="#00bfa5"></div><div class="setting-row"><label>Mode</label><select id="theme-mode"><option value="light">Light</option><option value="dark">Dark</option></select></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id="save-settings" class="btn-primary-osmind">Save</button><button id="reset-settings" class="btn-ghost">Reset</button></div></div><div id="tab-wallpaper" class="tab-panel" style="display:none"><div class="setting-row"><label>Wallpaper URL</label><input id="wallpaper-url" type="text" placeholder="https://..." style="width:100%"></div><div class="setting-row"><label>Upload</label><button id="wallpaper-upload" class="btn-ghost">Choose File</button></div><img id="wallpaper-preview" style="width:100%;margin-top:10px;border-radius:8px;display:none;object-fit:cover"></div><div id="tab-about" class="tab-panel" style="display:none"><div class="about-box"><h4>OSMIND</h4><p>Web OS-like portfolio platform.</p><p style="font-size:13px">v0.9 alpha</p></div></div></div>`;
+          (qs("#window-container") || document.body).appendChild(win);
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+          // tabs wiring
+          const tabBtns = win.querySelectorAll(".settings-tabs button");
+          tabBtns.forEach(
+            (b) =>
+              (b.onclick = () => {
+                tabBtns.forEach((x) => x.classList.remove("active"));
+                b.classList.add("active");
+                win
+                  .querySelectorAll(".tab-panel")
+                  .forEach((p) => (p.style.display = "none"));
+                const p = win.querySelector(`#tab-${b.dataset.tab}`);
+                if (p) p.style.display = "block";
+              })
+          );
+          // inputs
+          const colorInput = qs("#theme-color", win),
+            modeInput = qs("#theme-mode", win),
+            wallInput = qs("#wallpaper-url", win),
+            prev = qs("#wallpaper-preview", win);
+          colorInput.value = localStorage.getItem("osmind-theme") || "#00bfa5";
+          modeInput.value = localStorage.getItem("osmind-mode") || "dark";
+          const savedWall = localStorage.getItem("osmind_wallpaper") || "";
+          if (savedWall) {
+            prev.src = savedWall;
+            prev.style.display = "block";
+            wallInput.value = savedWall;
+          }
+          colorInput.oninput = () =>
+            applyTheme(colorInput.value, modeInput.value);
+          modeInput.onchange = () =>
+            applyTheme(colorInput.value, modeInput.value);
+          wallInput.oninput = () => {
+            const v = wallInput.value.trim();
+            if (v) {
+              prev.src = v;
+              prev.style.display = "block";
+            } else prev.style.display = "none";
+          };
+          qs("#wallpaper-upload", win).onclick = () => {
+            const f = qs("#wallpaperFile");
+            if (!f) {
+              showNotification("No file input available.", "info");
+              return;
+            }
+            f.value = "";
+            f.onchange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const r = new FileReader();
+              r.onload = () => {
+                prev.src = r.result;
+                prev.style.display = "block";
+                wallInput.value = r.result;
+                applyWallpaperSrc(r.result);
+              };
+              r.readAsDataURL(file);
+            };
+            f.click();
+          };
+          qs("#save-settings", win).onclick = () => {
+            localStorage.setItem("osmind-theme", colorInput.value);
+            localStorage.setItem("osmind-mode", modeInput.value);
+            if (wallInput.value.trim())
+              localStorage.setItem("osmind_wallpaper", wallInput.value.trim());
+            applyTheme(colorInput.value, modeInput.value);
+            if (wallInput.value.trim())
+              applyWallpaperSrc(wallInput.value.trim());
+            showNotification("✅ Settings saved.", "success");
+            updateAppManagerUI();
+          };
+          qs("#reset-settings", win).onclick = () => {
+            if (!confirm("Reset all settings?")) return;
+            localStorage.removeItem("osmind-theme");
+            localStorage.removeItem("osmind-mode");
+            localStorage.removeItem("osmind_wallpaper");
+            applyTheme("#00bfa5", "dark");
+            applyWallpaperSrc("");
+            showNotification("🔄 Settings reset.", "info");
+          };
+          const cbtn = qs(".close-btn", win);
+          if (cbtn)
+            cbtn.onclick = () => {
+              win.classList.add("closing");
+              setTimeout(() => win.remove(), 200);
+            };
+          const mbtn = qs(".minimize-btn", win);
+          if (mbtn) mbtn.onclick = () => (win.style.display = "none");
+        }
+        function openAbout() {
+          const id = "window-about";
+          let w = qs("#" + id);
+          if (w) {
+            w.style.display = "block";
+            bringToFront(w);
+            return;
+          }
+          w = document.createElement("div");
+          w.className = "app-window show";
+          w.id = id;
+          w.style.left = "calc(50% - 220px)";
+          w.style.top = "120px";
+          w.style.width = "460px";
+          w.innerHTML = `<div class="app-header"><div class="title">About OSMIND</div><div class="window-buttons"><button class="close-btn">×</button></div></div><div class="app-body"><h3 style="color:var(--osmind-theme)">OSMIND</h3><p>Interactive glass OS portfolio platform.</p></div>`;
+          (qs("#window-container") || document.body).appendChild(w);
+          makeDraggable(w);
+          bringToFront(w);
+          const cb = qs(".close-btn", w);
+          if (cb) cb.onclick = () => w.remove();
+        }
+
+        /* ----------------- Theme ----------------- */
+        function getTextColor(hex) {
+          if (!hex || hex[0] !== "#") return "#fff";
+          const rgb = parseInt(hex.slice(1), 16);
+          const r = (rgb >> 16) & 255,
+            g = (rgb >> 8) & 255,
+            b = rgb & 255;
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+          return brightness > 140 ? "#001" : "#fff";
+        }
+        function applyTheme(color, mode) {
+          if (!color) color = localStorage.getItem("osmind-theme") || "#00bfa5";
+          if (!mode) mode = localStorage.getItem("osmind-mode") || "dark";
+          document.documentElement.style.setProperty("--osmind-theme", color);
+          document.documentElement.style.setProperty(
+            "--osmind-theme-hover",
+            color + "cc"
+          );
+          document.documentElement.style.setProperty(
+            "--osmind-text-color",
+            getTextColor(color)
+          );
+          if (mode === "light")
+            document.body.style.background =
+              "linear-gradient(135deg,#ffffff,#f0f4f6)";
+          else {
+            const saved = localStorage.getItem("osmind_wallpaper");
+            if (saved) applyWallpaperSrc(saved);
+            else
+              document.body.style.background =
+                "linear-gradient(135deg,#0f1720,#071018)";
+          }
+        }
+
+        /* ----------------- File System (tree in localStorage) ----------------- */
+        const FS_KEY = "osmind_fs_v2";
+        const defaultTree = {
+          name: "root",
+          type: "folder",
+          children: [
+            {
+              name: "Documents",
+              type: "folder",
+              children: [
+                {
+                  name: "about.txt",
+                  type: "file",
+                  mime: "text/plain",
+                  content: "Welcome to OSMIND!\n\nEdit this file in Notepad.",
+                },
+              ],
+            },
+            {
+              name: "Pictures",
+              type: "folder",
+              children: [
+                /* images can be uploaded */
+              ],
+            },
+            {
+              name: "notes.md",
+              type: "file",
+              mime: "text/markdown",
+              content: "# Notes\nThis is your notebook inside OSMIND.",
+            },
+          ],
         };
 
-        cancelBtn.onclick = () => {
-          modal.style.display = "none";
-      };
-
-      modal.onclick = (e) => {
-        if (e.target === modal) {
-          modal.style.display = "none";
+        function loadTree() {
+          const raw = localStorage.getItem(FS_KEY);
+          if (!raw) {
+            localStorage.setItem(FS_KEY, JSON.stringify(defaultTree));
+            return structuredClone(defaultTree);
+          }
+          try {
+            return JSON.parse(raw);
+          } catch {
+            localStorage.setItem(FS_KEY, JSON.stringify(defaultTree));
+            return structuredClone(defaultTree);
+          }
         }
-      };
-    }
+        function saveTree(tree) {
+          localStorage.setItem(FS_KEY, JSON.stringify(tree));
+        }
 
-    // ♻️ بازگرداندن به پیش‌فرض
-    function resetWallpaper() {
-      localStorage.removeItem("wallpaper");
-      document.getElementById("desktop-area").style.background =
-        "linear-gradient(180deg, #e8eaed, #cfd2d6)";
-    }
+        function getNodeByPath(tree, pathArray) {
+          if (!Array.isArray(pathArray) || pathArray.length === 0) return tree;
+          let node = tree;
+          for (const part of pathArray) {
+            if (!node.children) return null;
+            node = node.children.find((c) => c.name === part);
+            if (!node) return null;
+          }
+          return node;
+        }
 
-    // 💾 اعمال تصویر انتخابی و ذخیره
-    function applyWallpaper(src) {
-      const desktop = document.getElementById("desktop-area");
-      desktop.style.background = `url(${src}) center/cover no-repeat`;
-      localStorage.setItem("wallpaper", src);
-    }
+        function ensureUniqueName(parent, name) {
+          if (!parent.children) parent.children = [];
+          let base = name;
+          let ext = "";
+          const m = name.match(/(.*?)(\.[^.]*)$/);
+          if (m) {
+            base = m[1];
+            ext = m[2];
+          }
+          let candidate = name;
+          let i = 1;
+          while (parent.children.some((c) => c.name === candidate)) {
+            candidate = base + " (" + i + ")" + ext;
+            i++;
+          }
+          return candidate;
+        }
 
-    // ♻️ بازگردانی پس‌زمینه ذخیره‌شده موقع لود
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("wallpaper");
-      if (saved) {
-        document.getElementById(
-          "desktop-area"
-        ).style.background = `url(${saved}) center/cover no-repeat`;
-      }
-    });
-  </script>
+        function createFolderAt(pathArray, folderName) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent) return false;
+          if (!parent.children) parent.children = [];
+          const unique = ensureUniqueName(parent, folderName);
+          parent.children.push({ name: unique, type: "folder", children: [] });
+          saveTree(tree);
+          return true;
+        }
+
+        function createFileAt(
+          pathArray,
+          filename,
+          mime = "text/plain",
+          content = ""
+        ) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent) return false;
+          if (!parent.children) parent.children = [];
+          const unique = ensureUniqueName(parent, filename);
+          parent.children.push({ name: unique, type: "file", mime, content });
+          saveTree(tree);
+          return true;
+        }
+
+        function deleteNodeAt(pathArray, name) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent || !parent.children) return false;
+          const idx = parent.children.findIndex((c) => c.name === name);
+          if (idx === -1) return false;
+          parent.children.splice(idx, 1);
+          saveTree(tree);
+          return true;
+        }
+
+        function renameNodeAt(pathArray, oldName, newName) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent || !parent.children) return false;
+          const node = parent.children.find((c) => c.name === oldName);
+          if (!node) return false;
+          const unique = ensureUniqueName(parent, newName);
+          node.name = unique;
+          saveTree(tree);
+          return true;
+        }
+
+        function readFileAt(pathArray, filename) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent || !parent.children) return null;
+          const node = parent.children.find(
+            (c) => c.name === filename && c.type === "file"
+          );
+          return node || null;
+        }
+
+        function writeFileAt(pathArray, filename, mime, content) {
+          const tree = loadTree();
+          const parent = getNodeByPath(tree, pathArray);
+          if (!parent || !parent.children) return false;
+          const node = parent.children.find(
+            (c) => c.name === filename && c.type === "file"
+          );
+          if (!node) return false;
+          node.mime = mime;
+          node.content = content;
+          saveTree(tree);
+          return true;
+        }
+
+        /* ----------------- File Explorer UI ----------------- */
+        window.openFileExplorer = function () {
+          const slug = "osmind-files";
+          let win = qs("#window-" + slug);
+          if (win) {
+            win.style.display = "block";
+            bringToFront(win);
+            return;
+          }
+
+          win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = "window-" + slug;
+          win.style.left = "calc(50% - 300px)";
+          win.style.top = "80px";
+          win.style.width = "720px";
+          win.style.height = "460px";
+          win.innerHTML = `
+      <div class="app-header">
+        <div class="title">File Explorer</div>
+        <div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div>
+      </div>
+      <div class="app-body" style="display:flex;flex-direction:column;height:100%;">
+        <div id="file-explorer-toolbar" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <button id="fe-up" class="btn-ghost">⬆ Up</button>
+          <div id="file-path" style="flex:1;color:var(--osmind-text-color)">root</div>
+          <button id="fe-new-folder" class="btn-ghost">+ Folder</button>
+          <button id="fe-new-file" class="btn-ghost">+ Text File</button>
+          <button id="fe-upload-img" class="btn-ghost">Upload Image</button>
+        </div>
+        <div id="file-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;flex:1;overflow:auto;padding-bottom:8px;"></div>
+      </div>
+    `;
+          (qs("#window-container") || document.body).appendChild(win);
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+          const closeBtn = qs(".close-btn", win);
+          if (closeBtn) closeBtn.onclick = () => win.remove();
+          const minBtn = qs(".minimize-btn", win);
+          if (minBtn) minBtn.onclick = () => (win.style.display = "none");
+
+          // hidden file input for images
+          let hiddenInput = qs("#fe-upload-input");
+          if (!hiddenInput) {
+            hiddenInput = document.createElement("input");
+            hiddenInput.type = "file";
+            hiddenInput.accept = "image/*";
+            hiddenInput.id = "fe-upload-input";
+            hiddenInput.style.display = "none";
+            document.body.appendChild(hiddenInput);
+          }
+
+          let cwd = []; // array of names
+          let tree = loadTree();
+
+          function render() {
+            window.renderFileExplorer = render;
+            tree = loadTree();
+            const node = getNodeByPath(tree, cwd) || tree;
+            const list = win.querySelector("#file-list");
+            const pathEl = win.querySelector("#file-path");
+            pathEl.textContent =
+              "root" + (cwd.length ? "/" + cwd.join("/") : "");
+            list.innerHTML = "";
+
+            if (!node.children || node.children.length === 0) {
+              list.innerHTML = `<div style="color:#aaa;padding:24px;text-align:center;">📂 This folder is empty</div>`;
+              return;
+            }
+
+            node.children.forEach((item) => {
+              const card = document.createElement("div");
+              card.style.cssText = `
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: transform .15s, background .15s;
+      cursor: pointer;
+      overflow: hidden;
+    `;
+              card.onmouseover = () =>
+                (card.style.background = "rgba(255,255,255,0.08)");
+              card.onmouseout = () =>
+                (card.style.background = "rgba(255,255,255,0.04)");
+
+              const icon = document.createElement("img");
+              icon.style.cssText = `
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(0,0,0,0.2);
+      padding: 6px;
+    `;
+
+              if (item.type === "folder") {
+                icon.src =
+                  "https://cdn-icons-png.flaticon.com/512/716/716784.png";
+              } else if (
+                item.mime &&
+                item.mime.startsWith("image/") &&
+                item.content
+              ) {
+                icon.src = item.content;
+              } else {
+                icon.src =
+                  "https://cdn-icons-png.flaticon.com/512/337/337946.png";
+              }
+
+              const nameEl = document.createElement("div");
+              nameEl.style.cssText = `
+      font-size: 13px;
+      color: #fff;
+      text-align: center;
+      max-width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `;
+              nameEl.textContent = item.name;
+
+              card.appendChild(icon);
+              card.appendChild(nameEl);
+
+              card.onclick = () => {
+                if (item.type === "folder") {
+                  cwd.push(item.name);
+                  render();
+                } else if (item.mime && item.mime.startsWith("image/")) {
+                  openImageViewer(cwd, item.name);
+                } else {
+                  openNotepad(cwd, item.name);
+                }
+              };
+
+              card.oncontextmenu = (ev) => {
+                ev.preventDefault();
+                showFileContextMenu(ev.pageX, ev.pageY, cwd, item);
+              };
+
+              list.appendChild(card);
+            });
+          }
+
+          function showFileContextMenu(x, y, pathArr, item) {
+            const existing = qs("#fe-context-menu");
+            if (existing) existing.remove();
+            const menu = document.createElement("div");
+            menu.id = "fe-context-menu";
+            menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:rgba(20,24,28,0.98);color:white;padding:8px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,0.4);z-index:40000;`;
+            menu.innerHTML = `<div class="fe-item" data-action="rename">Rename</div><div class="fe-item" data-action="delete">Delete</div><div class="fe-item" data-action="duplicate">Duplicate</div>`;
+            document.body.appendChild(menu);
+            qsa(".fe-item", menu).forEach((it) => {
+              it.style.padding = "8px 12px";
+              it.style.cursor = "pointer";
+              it.addEventListener(
+                "mouseover",
+                () => (it.style.background = "rgba(255,255,255,0.03)")
+              );
+              it.addEventListener(
+                "mouseout",
+                () => (it.style.background = "transparent")
+              );
+              it.addEventListener("click", () => {
+                const a = it.dataset.action;
+                try {
+                  menu.remove();
+                } catch {}
+                if (a === "rename") {
+                  const newName = prompt("Enter new name:", item.name);
+                  if (!newName) return;
+                  const ok = renameNodeAt(pathArr, item.name, newName);
+                  if (ok) {
+                    showNotification("Renamed.", "success");
+                    render();
+                  } else showNotification("Rename failed.", "error");
+                } else if (a === "delete") {
+                  if (!confirm(`Delete "${item.name}"?`)) return;
+                  const ok = deleteNodeAt(pathArr, item.name);
+                  if (ok) {
+                    showNotification("Deleted.", "info");
+                    render();
+                  } else showNotification("Delete failed.", "error");
+                } else if (a === "duplicate") {
+                  const tree = loadTree();
+                  const parent = getNodeByPath(tree, pathArr) || tree;
+                  if (!parent.children) parent.children = [];
+                  const node = parent.children.find(
+                    (c) => c.name === item.name
+                  );
+                  if (!node) {
+                    showNotification("Duplicate failed.", "error");
+                    return;
+                  }
+                  const clone = JSON.parse(JSON.stringify(node));
+                  clone.name = ensureUniqueName(parent, node.name);
+                  parent.children.push(clone);
+                  saveTree(tree);
+                  showNotification("Duplicated.", "success");
+                  render();
+                }
+              });
+            });
+            document.addEventListener(
+              "click",
+              function onDoc(e) {
+                if (!menu.contains(e.target))
+                  try {
+                    menu.remove();
+                  } catch {}
+              },
+              { once: true }
+            );
+          }
+
+          // toolbar
+          const btnUp = win.querySelector("#fe-up");
+          if (btnUp)
+            btnUp.onclick = () => {
+              if (cwd.length > 0) {
+                cwd.pop();
+                render();
+              }
+            };
+          const btnNewFolder = win.querySelector("#fe-new-folder");
+          if (btnNewFolder)
+            btnNewFolder.onclick = () => {
+              const name = prompt("Enter new folder name:");
+              if (!name) return;
+              const ok = createFolderAt(cwd, name);
+              if (ok) {
+                showNotification(`Folder "${name}" created`, "success");
+                render();
+              } else showNotification("Create folder failed", "error");
+            };
+          const btnNewFile = win.querySelector("#fe-new-file");
+          if (btnNewFile)
+            btnNewFile.onclick = () => {
+              const name = prompt("Enter new text file name (e.g., file.txt):");
+              if (!name) return;
+              const ok = createFileAt(cwd, name, "text/plain", "");
+              if (ok) {
+                showNotification(`File "${name}" created`, "success");
+                render();
+                openNotepad(
+                  cwd,
+                  ensureUniqueName(
+                    getNodeByPath(loadTree(), cwd) || loadTree(),
+                    name
+                  )
+                );
+              } else showNotification("Create file failed", "error");
+            };
+          const btnUploadImg = win.querySelector("#fe-upload-img");
+          if (btnUploadImg)
+            btnUploadImg.onclick = () => {
+              hiddenInput.value = "";
+              hiddenInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const mime = file.type || "image/png";
+                  const suggested = ensureUniqueName(
+                    getNodeByPath(loadTree(), cwd) || loadTree(),
+                    file.name
+                  );
+                  createFileAt(cwd, suggested, mime, reader.result);
+                  showNotification(`Image "${file.name}" uploaded`, "success");
+                  render();
+                };
+                reader.readAsDataURL(file);
+              };
+              hiddenInput.click();
+            };
+
+          render();
+        };
+
+        /* ----------------- Notepad (text editor) ----------------- */
+        function openNotepad(pathArr, filename) {
+          const slug =
+            "osmind-notepad-" +
+            (pathArr.length ? pathArr.join("_") + "_" : "") +
+            filename.replace(/\W/g, "_");
+          let win = qs("#window-" + slug);
+          if (win) {
+            win.style.display = "block";
+            bringToFront(win);
+            return;
+          }
+          const node = readFileAt(pathArr, filename);
+          if (!node) {
+            showNotification("File not found.", "error");
+            return;
+          }
+          const content = node.content || "";
+          win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = "window-" + slug;
+          win.style.left = 120 + Math.floor(Math.random() * 60) + "px";
+          win.style.top = 100 + Math.floor(Math.random() * 50) + "px";
+          setWindowSizeFromContent(win, 640, 420);
+          win.innerHTML = `
+      <div class="app-header"><div class="title">Notepad — ${escapeHtml(
+        filename
+      )}</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div>
+      <div class="app-body" style="display:flex;flex-direction:column;height:100%;">
+        <textarea id="notepad-area" style="flex:1;width:100%;box-sizing:border-box;padding:12px;border-radius:8px;background:rgba(0,0,0,0.6);color:white;border:1px solid rgba(255,255,255,0.04);resize:vertical;font-family:monospace;"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+          <button id="notepad-save" class="btn-primary-osmind">Save</button><button id="notepad-save-close" class="btn-ghost">Save & Close</button><button id="notepad-close" class="btn-ghost">Close</button>
+        </div>
+      </div>
+    `;
+          (qs("#window-container") || document.body).appendChild(win);
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+          const ta = qs("#notepad-area", win);
+          if (ta) {
+            ta.value = node.content || "";
+            ta.focus();
+          }
+          const saveBtn = qs("#notepad-save", win);
+          const saveClose = qs("#notepad-save-close", win);
+          const closeBtn = qs("#notepad-close", win);
+          saveBtn.onclick = () => {
+            const newC = ta.value;
+            const ok = writeFileAt(
+              pathArr,
+              filename,
+              node.mime || "text/plain",
+              newC
+            );
+            if (ok) {
+              showNotification("Saved.", "success");
+            } else showNotification("Save failed.", "error");
+          };
+          saveClose.onclick = () => {
+            saveBtn.onclick();
+            win.remove();
+          };
+          closeBtn.onclick = () => {
+            if (ta.value !== (node.content || "")) {
+              if (confirm("Save changes before closing?")) saveBtn.onclick();
+            }
+            win.remove();
+          };
+          const cclose = qs(".close-btn", win);
+          if (cclose)
+            cclose.onclick = () => {
+              if (ta.value !== (node.content || "")) {
+                if (confirm("Save changes before closing?")) saveBtn.onclick();
+              }
+              win.remove();
+            };
+          const mbtn = qs(".minimize-btn", win);
+          if (mbtn) mbtn.onclick = () => (win.style.display = "none");
+        }
+
+        /* ----------------- Image viewer ----------------- */
+        function openImageViewer(pathArr, filename) {
+          const slug =
+            "osmind-img-" +
+            (pathArr.length ? pathArr.join("_") + "_" : "") +
+            filename.replace(/\W/g, "_");
+          let win = qs("#window-" + slug);
+          if (win) {
+            win.style.display = "block";
+            bringToFront(win);
+            return;
+          }
+          const node = readFileAt(pathArr, filename);
+          if (!node) {
+            showNotification("Image not found.", "error");
+            return;
+          }
+          const src = node.content || "";
+          win = document.createElement("div");
+          win.className = "app-window show";
+          win.id = "window-" + slug;
+          win.style.left = 120 + Math.floor(Math.random() * 60) + "px";
+          win.style.top = 90 + Math.floor(Math.random() * 40) + "px";
+          setWindowSizeFromContent(win, 520, 420);
+          win.innerHTML = `<div class="app-header"><div class="title">${escapeHtml(
+            filename
+          )}</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div><div class="app-body" style="display:flex;align-items:center;justify-content:center;"><img src="${src}" style="max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.4)"></div>`;
+          (qs("#window-container") || document.body).appendChild(win);
+          playSound("open");
+          makeDraggable(win);
+          bringToFront(win);
+          const cclose = qs(".close-btn", win);
+          if (cclose) cclose.onclick = () => win.remove();
+          const mbtn = qs(".minimize-btn", win);
+          if (mbtn) mbtn.onclick = () => (win.style.display = "none");
+        }
+
+        /* ----------------- Boot sequence (safe) ----------------- */
+        if (!window.runBootSequenceIfNeeded) {
+          window.runBootSequenceIfNeeded = function () {
+            return new Promise((resolve) => {
+              try {
+                const boot = document.getElementById("boot-screen");
+                if (!boot) {
+                  resolve();
+                  return;
+                }
+                let linesEl = document.getElementById("boot-lines");
+                if (!linesEl) {
+                  linesEl = document.createElement("pre");
+                  linesEl.id = "boot-lines";
+                  linesEl.style.whiteSpace = "pre-wrap";
+                  try {
+                    boot.appendChild(linesEl);
+                  } catch {}
+                }
+                let prog = document.getElementById("boot-progress");
+                if (!prog) {
+                  prog = document.createElement("div");
+                  prog.id = "boot-progress";
+                  prog.style.height = "6px";
+                  prog.style.width = "0%";
+                  prog.style.background = "var(--osmind-theme)";
+                  prog.style.borderRadius = "6px";
+                  prog.style.marginTop = "8px";
+                  try {
+                    boot.appendChild(prog);
+                  } catch {}
+                }
+                let tip = document.getElementById("boot-tip");
+                if (!tip) {
+                  tip = document.createElement("div");
+                  tip.id = "boot-tip";
+                  tip.style.marginTop = "8px";
+                  try {
+                    boot.appendChild(tip);
+                  } catch {}
+                }
+                const audioEl = document.getElementById("boot-sound");
+                const lines = [
+                  "[OK] Powering up subsystems...",
+                  "[OK] Mounting virtual devices...",
+                  "[OK] Loading display compositor...",
+                  "[OK] Initializing input hooks...",
+                  "[OK] Starting desktop session...",
+                  "[OK] Applying theme and wallpaper...",
+                  "[READY] Welcome to OSMIND!",
+                ];
+                const SAFE_MS = 9000;
+                const safeTimeout = setTimeout(() => {
+                  try {
+                    boot.style.transition = "opacity 400ms ease";
+                    boot.style.opacity = 0;
+                  } catch {}
+                  setTimeout(() => {
+                    try {
+                      boot.remove();
+                    } catch {}
+                    resolve();
+                  }, 450);
+                }, SAFE_MS);
+                if (audioEl) {
+                  try {
+                    audioEl.volume = 0.55;
+                    audioEl.play().catch(() => {});
+                  } catch {}
+                }
+                let i = 0;
+                function step() {
+                  if (!boot) {
+                    clearTimeout(safeTimeout);
+                    resolve();
+                    return;
+                  }
+                  if (i < lines.length) {
+                    try {
+                      linesEl.textContent =
+                        (linesEl.textContent || "") + lines[i] + "\n";
+                    } catch {}
+                    try {
+                      prog.style.width =
+                        Math.round(((i + 1) / lines.length) * 100) + "%";
+                    } catch {}
+                    i++;
+                    setTimeout(step, 300 + Math.random() * 400);
+                  } else {
+                    try {
+                      prog.style.width = "100%";
+                    } catch {}
+                    try {
+                      tip.textContent = "Boot complete. Launching desktop...";
+                    } catch {}
+                    clearTimeout(safeTimeout);
+                    setTimeout(() => {
+                      try {
+                        boot.style.transition =
+                          "opacity 600ms ease, display 600ms";
+                        boot.style.opacity = 0;
+                        boot.style.display = "none";
+                      } catch {}
+                      setTimeout(() => {
+                        try {
+                          boot.remove();
+                        } catch {}
+                        resolve();
+                      }, 700);
+                    }, 700);
+                    try {
+                      playSound("boot");
+                    } catch {}
+                  }
+                }
+                setTimeout(step, 300);
+              } catch (err) {
+                console.warn("boot error", err);
+                resolve();
+              }
+            });
+          };
+        }
+
+        /* ----------------- DOMContentLoaded main init ----------------- */
+        document.addEventListener("DOMContentLoaded", () => {
+          if (!qs("#window-container")) {
+            const container = document.createElement("div");
+            container.id = "window-container";
+            container.style = "position:absolute;inset:0;pointer-events:none;";
+            document.body.appendChild(container);
+          }
+          // bind desktop icons
+          qsa(".app-icon").forEach((icon) => {
+            if (icon.getAttribute("onclick")) return; // respect inline
+            const appKey = icon.dataset.app || icon.getAttribute("data-app");
+            if (appKey === "files") {
+              icon.onclick = () =>
+                window.openFileExplorer && window.openFileExplorer();
+            } else {
+              if (typeof icon.onclick === "function") return;
+              icon.onclick = () => openApp(icon);
+            }
+          });
+          // run boot then finalize
+          const bp =
+            typeof runBootSequenceIfNeeded === "function"
+              ? runBootSequenceIfNeeded()
+              : Promise.resolve();
+          bp.then(() => {
+            applyTheme(
+              localStorage.getItem("osmind-theme") || "#00bfa5",
+              localStorage.getItem("osmind-mode") || "dark"
+            );
+            const w = localStorage.getItem("osmind_wallpaper") || "";
+            if (w) applyWallpaperSrc(w);
+            updateAppManagerUI();
+            updateTaskManagerUI();
+            updateBattery();
+            updateClock();
+          }).catch((e) => {
+            console.warn("bootPromise rejected:", e);
+            applyTheme(
+              localStorage.getItem("osmind-theme") || "#00bfa5",
+              localStorage.getItem("osmind-mode") || "dark"
+            );
+            updateAppManagerUI();
+            updateTaskManagerUI();
+            updateBattery();
+            updateClock();
+          });
+
+          // expose global helpers for inline HTML
+          window.openApp = openApp;
+          window.openSettings = openSettings;
+          window.openTaskManager = openTaskManager;
+          window.openAbout = openAbout;
+          window.closeApp = closeApp;
+          window.minimizeApp = minimizeApp;
+          window.restoreApp = restoreApp;
+          window.showNotification = showNotification;
+        });
+
+        /* ----------------- keyboard: Esc closes topmost ----------------- */
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            const wins = qsa(".app-window").filter(
+              (x) => x.style.display !== "none"
+            );
+            if (wins.length) wins[wins.length - 1].remove();
+          }
+        });
+
+        // call boot in case script placed late
+        document.addEventListener("DOMContentLoaded", function () {
+          try {
+            if (typeof runBootSequenceIfNeeded === "function")
+              runBootSequenceIfNeeded();
+          } catch (e) {
+            console.error("Boot sequence failed:", e);
+          }
+        });
+      })();
+    </script>
+
+    <script>
+      window.addEventListener("load", () => {
+        if (typeof window.runBootSequenceIfNeeded === "function") {
+          console.log("🔹 Boot function found, running...");
+          window.runBootSequenceIfNeeded();
+        } else {
+          console.warn("⚠ Boot function not found at load time.");
+        }
+      });
+    </script>
+  </body>
 </html>
