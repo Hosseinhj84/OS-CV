@@ -604,6 +604,35 @@
         color: #cfeee6;
         margin-bottom: 6px;
       }
+
+      #file-list > div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 110px;
+        padding: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        word-break: break-word;
+        overflow: hidden;
+        height: fit-content;
+      }
+
+      #file-list img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 8px;
+      }
+
+      #file-list span {
+        display: block;
+        font-size: 13px;
+        text-align: center;
+        color: #fff;
+        max-width: 100%;
+      }
     </style>
   </head>
 
@@ -866,570 +895,41 @@
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
       crossorigin="anonymous"
     ></script>
-    <!-- <script>
-      /* ===========================
-  OSMIND — Simulated File Explorer (localStorage)
-  Paste this after your main script (or inside it near other apps).
-  Provides: explorer window, text editor, image viewer, create/delete/rename, upload/download.
-  ============================ */
-
-      (function () {
-        // safety: don't redefine
-        if (window.openFileExplorer) return;
-
-        const FS_KEY = "osmind_fs_v1";
-
-        // helpers (reuse if exist)
-        const qs = (s, r = document) => (r || document).querySelector(s);
-        const qsa = (s, r = document) =>
-          Array.from((r || document).querySelectorAll(s));
-        const uid = () => "f" + Math.random().toString(36).slice(2, 9);
-
-        // safe references to host helpers (fallbacks)
-        const HOST = {
-          OSMIND_APPS: window.OSMIND_APPS || new Map(),
-          makeDraggable:
-            window.makeDraggable ||
-            function (w) {
-              /* noop */
-            },
-          bringToFront:
-            window.bringToFront ||
-            function (el) {
-              if (el) el.style.zIndex = 9999;
-            },
-          playSound: window.playSound || function () {},
-          showNotification:
-            window.showNotification ||
-            function (m, t) {
-              console.log(t || "info", m);
-            },
-          updateAppManagerUI: window.updateAppManagerUI || function () {},
-          updateTaskManagerUI: window.updateTaskManagerUI || function () {},
-        };
-
-        /* ======= Virtual FS helpers ======= */
-        function fsLoad() {
-          try {
-            const raw = localStorage.getItem(FS_KEY);
-            if (!raw) {
-              // init with Desktop + sample files
-              const init = {
-                Desktop: {
-                  "readme.txt": {
-                    type: "text",
-                    content:
-                      "Welcome to OSMIND File Explorer!\nDouble-click files to open them.\nRight now this is a simulated FS in localStorage.",
-                  },
-                  "logo.png": {
-                    type: "image",
-                    // optional: leave empty, or embed a tiny placeholder
-                    content: "",
-                  },
-                },
-                Documents: {},
-              };
-              localStorage.setItem(FS_KEY, JSON.stringify(init));
-              return init;
-            }
-            return JSON.parse(raw);
-          } catch (e) {
-            console.warn("fsLoad error", e);
-            return {};
-          }
-        }
-        function fsSave(state) {
-          try {
-            localStorage.setItem(FS_KEY, JSON.stringify(state));
-          } catch (e) {
-            console.warn("fsSave error", e);
-          }
-        }
-
-        function ensurePath(path) {
-          // path: "Desktop" or "Documents"
-          const fs = fsLoad();
-          if (!fs[path]) fs[path] = {};
-          fsSave(fs);
-          return fs[path];
-        }
-
-        function listFiles(folder) {
-          const fs = fsLoad();
-          return fs[folder]
-            ? Object.entries(fs[folder]).map(([name, meta]) => ({
-                name,
-                ...meta,
-              }))
-            : [];
-        }
-
-        function readFile(folder, name) {
-          const fs = fsLoad();
-          return fs[folder] && fs[folder][name] ? fs[folder][name] : null;
-        }
-
-        function writeFile(folder, name, type, content) {
-          const fs = fsLoad();
-          if (!fs[folder]) fs[folder] = {};
-          fs[folder][name] = { type, content };
-          fsSave(fs);
-          return fs[folder][name];
-        }
-
-        function deleteFile(folder, name) {
-          const fs = fsLoad();
-          if (fs[folder] && fs[folder][name]) {
-            delete fs[folder][name];
-            fsSave(fs);
-            return true;
-          }
-          return false;
-        }
-
-        function renameFile(folder, oldName, newName) {
-          const fs = fsLoad();
-          if (!fs[folder] || !fs[folder][oldName]) return false;
-          fs[folder][newName] = fs[folder][oldName];
-          delete fs[folder][oldName];
-          fsSave(fs);
-          return true;
-        }
-
-        /* ======= UI builders ======= */
-        function openFileExplorer() {
-          const slug = "file-explorer";
-          const id = "window-" + slug;
-          if (HOST.OSMIND_APPS.has(slug) && qs("#" + id)) {
-            const w = qs("#" + id);
-            w.style.display = "block";
-            HOST.bringToFront(w);
-            return;
-          }
-
-          // create window
-          const win = document.createElement("div");
-          win.className = "app-window show";
-          win.id = id;
-          win.style.left = "120px";
-          win.style.top = "120px";
-          win.style.width = "720px";
-          win.style.height = "480px";
-          win.innerHTML = `
-      <div class="app-header"><div class="title">File Explorer</div>
-        <div class="window-buttons">
-          <button class="minimize-btn">—</button>
-          <button class="close-btn">×</button>
-        </div>
-      </div>
-      <div class="app-body" style="display:flex;gap:12px;height:calc(100% - 44px);">
-        <div style="width:200px;border-right:1px solid rgba(255,255,255,0.04);padding-right:8px;overflow:auto">
-          <div style="display:flex;flex-direction:column;gap:6px;padding:8px;">
-            <button id="fe-new-file" class="btn-primary-osmind" style="width:100%">New File</button>
-            <button id="fe-new-folder" class="btn-ghost" style="width:100%">New Folder</button>
-            <label style="margin-top:8px;font-weight:600">Folders</label>
-            <div id="fe-folders" style="display:flex;flex-direction:column;gap:6px"></div>
-          </div>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="font-weight:700;color:var(--osmind-theme)" id="fe-current-folder">Desktop</div>
-            <div style="flex:1"></div>
-            <input id="fe-search" placeholder="Search" style="padding:6px;border-radius:6px;border:none;background:rgba(255,255,255,0.03);color:#fff">
-            <button id="fe-upload" class="btn-ghost" style="margin-left:8px">Upload</button>
-            <button id="fe-download" class="btn-ghost" style="margin-left:4px">Download</button>
-          </div>
-          <div id="fe-file-list" style="flex:1;overflow:auto;padding:8px;display:flex;flex-wrap:wrap;gap:12px"></div>
-        </div>
-      </div>
-      `;
-
-          // append to container
-          const container = qs("#window-container") || document.body;
-          container.appendChild(win);
-          HOST.makeDraggable(win);
-          HOST.bringToFront(win);
-
-          // register in host apps map
-          HOST.OSMIND_APPS.set(slug, {
-            name: "File Explorer",
-            win: win,
-            icon: "", // optional - could set to a data uri
-            visible: true,
-            minimized: false,
-          });
-          HOST.updateAppManagerUI();
-          HOST.updateTaskManagerUI();
-
-          // elements
-          const foldersEl = qs("#fe-folders", win);
-          const listEl = qs("#fe-file-list", win);
-          const curFolderEl = qs("#fe-current-folder", win);
-          const searchEl = qs("#fe-search", win);
-          const uploadBtn = qs("#fe-upload", win);
-          const downloadBtn = qs("#fe-download", win);
-          const newFileBtn = qs("#fe-new-file", win);
-
-          // state
-          let currentFolder = "Desktop";
-
-          function renderFolders() {
-            foldersEl.innerHTML = "";
-            const fs = fsLoad();
-            Object.keys(fs).forEach((f) => {
-              const b = document.createElement("div");
-              b.textContent = f;
-              b.style.padding = "8px";
-              b.style.borderRadius = "6px";
-              b.style.cursor = "pointer";
-              b.style.background =
-                f === currentFolder ? "rgba(255,255,255,0.04)" : "transparent";
-              b.onclick = () => {
-                currentFolder = f;
-                curFolderEl.textContent = f;
-                renderFolders();
-                renderFileList();
-              };
-              foldersEl.appendChild(b);
-            });
-          }
-
-          function renderFileList(filter = "") {
-            listEl.innerHTML = "";
-            const items = listFiles(currentFolder);
-            const query = (filter || "").toLowerCase();
-            items
-              .filter((it) => !query || it.name.toLowerCase().includes(query))
-              .forEach((it) => {
-                const card = document.createElement("div");
-                card.style.cssText =
-                  "width:140px;height:140px;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;";
-                const thumb = document.createElement("div");
-                thumb.style.width = "72px";
-                thumb.style.height = "72px";
-                thumb.style.borderRadius = "8px";
-                thumb.style.overflow = "hidden";
-                thumb.style.display = "flex";
-                thumb.style.alignItems = "center";
-                thumb.style.justifyContent = "center";
-                if (it.type === "image" && it.content) {
-                  const im = document.createElement("img");
-                  im.src = it.content;
-                  im.style.maxWidth = "100%";
-                  im.style.maxHeight = "100%";
-                  thumb.appendChild(im);
-                } else {
-                  thumb.style.background = "rgba(0,0,0,0.2)";
-                  thumb.innerHTML = `<div style="font-size:24px;color:var(--osmind-theme)">📄</div>`;
-                }
-                const name = document.createElement("div");
-                name.textContent = it.name;
-                name.style.fontSize = "13px";
-                name.style.textAlign = "center";
-                name.style.wordBreak = "break-word";
-
-                // actions on double-click: open viewer/editor
-                card.ondblclick = () => openFileViewer(currentFolder, it.name);
-
-                // context menu (right-click) for file ops
-                card.oncontextmenu = (ev) => {
-                  ev.preventDefault();
-                  showFileContextMenu(
-                    ev.pageX,
-                    ev.pageY,
-                    currentFolder,
-                    it.name,
-                    win
-                  );
-                };
-
-                card.appendChild(thumb);
-                card.appendChild(name);
-                listEl.appendChild(card);
-              });
-
-            if (items.length === 0) {
-              listEl.innerHTML = `<div style="color:#cfefe7;padding:12px">This folder is empty.</div>`;
-            }
-          }
-
-          function showFileContextMenu(x, y, folder, name, winRef) {
-            // remove old menu
-            const old = qs("#fe-context-menu");
-            if (old) old.remove();
-            const menu = document.createElement("div");
-            menu.id = "fe-context-menu";
-            menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:rgba(20,24,28,0.95);padding:8px;border-radius:8px;z-index:40000;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,0.5)`;
-            menu.innerHTML = `<div style="padding:8px;cursor:pointer" data-act="open">Open</div>
-                        <div style="padding:8px;cursor:pointer" data-act="rename">Rename</div>
-                        <div style="padding:8px;cursor:pointer" data-act="download">Download</div>
-                        <div style="padding:8px;color:#ff7b7b;cursor:pointer" data-act="delete">Delete</div>`;
-            document.body.appendChild(menu);
-            qsa("[data-act]", menu).forEach((it) => {
-              it.onclick = () => {
-                const act = it.dataset.act;
-                menu.remove();
-                if (act === "open") openFileViewer(folder, name);
-                if (act === "rename") {
-                  const newName = prompt("New name:", name);
-                  if (newName && newName !== name) {
-                    if (renameFile(folder, name, newName)) {
-                      renderFileList(searchEl.value);
-                      HOST.showNotification("Renamed.", "success");
-                    } else HOST.showNotification("Rename failed.", "error");
-                  }
-                }
-                if (act === "delete") {
-                  if (confirm("Delete " + name + " ?")) {
-                    deleteFile(folder, name);
-                    renderFileList(searchEl.value);
-                    HOST.showNotification("Deleted.", "info");
-                  }
-                }
-                if (act === "download") {
-                  const meta = readFile(folder, name);
-                  if (!meta)
-                    return HOST.showNotification("File not found.", "error");
-                  downloadMetaAsFile(name, meta);
-                }
-              };
-            });
-            // remove on outside click
-            document.addEventListener(
-              "click",
-              function __rm(e) {
-                if (!menu.contains(e.target)) menu.remove();
-                document.removeEventListener("click", __rm);
-              },
-              { once: true }
-            );
-          }
-
-          function openFileViewer(folder, name) {
-            const meta = readFile(folder, name);
-            if (!meta) return HOST.showNotification("File not found.", "error");
-            // small viewer/editor window
-            const vid = uid();
-            const vwin = document.createElement("div");
-            vwin.className = "app-window show";
-            vwin.style.left = "calc(50% - 280px)";
-            vwin.style.top = "140px";
-            vwin.style.width = "560px";
-            vwin.style.height = "420px";
-            vwin.innerHTML = `<div class="app-header"><div class="title">${name}</div><div class="window-buttons"><button class="minimize-btn">—</button><button class="close-btn">×</button></div></div><div class="app-body" style="overflow:auto;padding:12px"></div>`;
-            const body = vwin.querySelector(".app-body");
-            if (meta.type === "text") {
-              body.innerHTML = `<textarea id="fe-editor-${vid}" style="width:100%;height:320px;background:rgba(0,0,0,0.5);color:#fff;padding:8px;border-radius:8px;border:none;resize:vertical">${
-                meta.content || ""
-              }</textarea>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button id="fe-save-${vid}" class="btn-primary-osmind">Save</button><button id="fe-close-${vid}" class="btn-ghost">Close</button></div>`;
-              container.appendChild(vwin);
-              HOST.makeDraggable(vwin);
-              HOST.bringToFront(vwin);
-              const saveBtn = qs("#fe-save-" + vid, vwin);
-              const closeBtn = qs("#fe-close-" + vid, vwin);
-              saveBtn.onclick = () => {
-                const txt = qs("#fe-editor-" + vid, vwin).value;
-                writeFile(folder, name, "text", txt);
-                HOST.showNotification("Saved.", "success");
-                renderFileList(searchEl.value);
-              };
-              closeBtn.onclick = () => vwin.remove();
-              qs(".close-btn", vwin).onclick = () => vwin.remove();
-              qs(".minimize-btn", vwin).onclick = () =>
-                (vwin.style.display = "none");
-            } else if (meta.type === "image") {
-              body.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><img id="fe-img-${vid}" src="${meta.content}" style="max-width:100%;max-height:320px;border-radius:8px"/><div style="display:flex;gap:8px"><button id="fe-downloadimg-${vid}" class="btn-primary-osmind">Download</button><button id="fe-closeimg-${vid}" class="btn-ghost">Close</button></div></div>`;
-              container.appendChild(vwin);
-              HOST.makeDraggable(vwin);
-              HOST.bringToFront(vwin);
-              qs("#fe-downloadimg-" + vid, vwin).onclick = () =>
-                downloadMetaAsFile(name, meta);
-              qs("#fe-closeimg-" + vid, vwin).onclick = () => vwin.remove();
-              qs(".close-btn", vwin).onclick = () => vwin.remove();
-              qs(".minimize-btn", vwin).onclick = () =>
-                (vwin.style.display = "none");
-            } else {
-              body.innerHTML = `<div>Unknown file type</div><button class="btn-ghost" onclick="this.closest('.app-window').remove()">Close</button>`;
-              container.appendChild(vwin);
-              HOST.makeDraggable(vwin);
-              HOST.bringToFront(vwin);
-            }
-          }
-
-          function downloadMetaAsFile(name, meta) {
-            if (meta.type === "text") {
-              const blob = new Blob([meta.content || ""], {
-                type: "text/plain;charset=utf-8",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = name;
-              a.click();
-              URL.revokeObjectURL(url);
-            } else if (meta.type === "image") {
-              // content is data URL
-              const a = document.createElement("a");
-              a.href = meta.content || "";
-              a.download = name;
-              a.click();
-            } else {
-              HOST.showNotification("Unsupported download type", "error");
-            }
-          }
-
-          // upload handling
-          uploadBtn.onclick = () => {
-            const f = document.getElementById("fe-hidden-upload");
-            if (f) f.remove();
-            const inp = document.createElement("input");
-            inp.type = "file";
-            inp.id = "fe-hidden-upload";
-            inp.accept = "image/*,text/plain";
-            inp.onchange = (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              const reader = new FileReader();
-              if (file.type.startsWith("image/")) {
-                reader.onload = () => {
-                  const name = file.name;
-                  writeFile(currentFolder, name, "image", reader.result);
-                  renderFileList(searchEl.value);
-                  HOST.showNotification("Image uploaded.", "success");
-                };
-                reader.readAsDataURL(file);
-              } else {
-                reader.onload = () => {
-                  const name = file.name.endsWith(".txt")
-                    ? file.name
-                    : file.name + ".txt";
-                  writeFile(currentFolder, name, "text", reader.result);
-                  renderFileList(searchEl.value);
-                  HOST.showNotification("File uploaded.", "success");
-                };
-                reader.readAsText(file);
-              }
-            };
-            document.body.appendChild(inp);
-            inp.click();
-          };
-
-          // download selected folder as simple zip-like: just download all text files concatenated (simple fallback)
-          downloadBtn.onclick = () => {
-            const items = listFiles(currentFolder);
-            if (items.length === 0)
-              return HOST.showNotification("Nothing to download.", "info");
-            // if only one selected? We'll provide simple behavior: if single file -> download; else create a zip-like text
-            if (items.length === 1) {
-              downloadMetaAsFile(items[0].name, items[0]);
-            } else {
-              // create a JSON dump of folder
-              const obj = {};
-              items.forEach((it) => (obj[it.name] = it));
-              const blob = new Blob([JSON.stringify(obj, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = currentFolder + ".json";
-              a.click();
-              URL.revokeObjectURL(url);
-            }
-          };
-
-          // new file / new folder
-          newFileBtn.onclick = () => {
-            const name = prompt(
-              "Filename (example: notes.txt):",
-              "new-file.txt"
-            );
-            if (!name) return;
-            writeFile(currentFolder, name, "text", "");
-            renderFileList(searchEl.value);
-            HOST.showNotification("File created.", "success");
-          };
-
-          qs("#fe-new-folder", win).onclick = () => {
-            const name = prompt("Folder name:", "NewFolder");
-            if (!name) return;
-            const fs = fsLoad();
-            if (fs[name])
-              return HOST.showNotification("Folder exists.", "error");
-            fs[name] = {};
-            fsSave(fs);
-            renderFolders();
-            HOST.showNotification("Folder created.", "success");
-          };
-
-          // search
-          searchEl.oninput = () => renderFileList(searchEl.value);
-
-          // window control buttons
-          qs(".close-btn", win).onclick = () => {
-            win.classList.add("closing");
-            setTimeout(() => {
-              try {
-                win.remove();
-              } catch {}
-              HOST.OSMIND_APPS.delete(slug);
-              HOST.updateAppManagerUI();
-              HOST.updateTaskManagerUI();
-            }, 200);
-          };
-          qs(".minimize-btn", win).onclick = () => (win.style.display = "none");
-
-          // initial render
-          renderFolders();
-          renderFileList();
-
-          // small helper: attach to desktop icons (if user wants)
-          window.openFileExplorerFromIcon = function (el) {
-            // call openFileExplorer and optionally focus
-            openFileExplorer();
-          };
-        } // end openFileExplorer
-
-        // expose globally
-        window.openFileExplorer = openFileExplorer;
-      })();
-    </script> -->
-
     <script>
-      // === IndexedDB helper ===
-      function openPhotoDB() {
-        return new Promise((resolve, reject) => {
-          const request = indexedDB.open("OSMIND_Photos_DB", 1);
-          request.onupgradeneeded = function (event) {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains("photos")) {
-              db.createObjectStore("photos", {
+      // IndexedDB helper (very small)
+      function openDB(name = "osmind_photos", version = 1) {
+        return new Promise((res, rej) => {
+          const req = indexedDB.open(name, version);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("pictures")) {
+              db.createObjectStore("pictures", {
                 keyPath: "id",
                 autoIncrement: true,
               });
             }
           };
-          request.onsuccess = (event) => resolve(event.target.result);
-          request.onerror = (event) => reject(event.target.error);
+          req.onsuccess = () => res(req.result);
+          req.onerror = () => rej(req.error);
         });
       }
 
-      async function savePhotoToDB(name, dataUrl) {
-        try {
-          const db = await openPhotoDB();
-          const tx = db.transaction("photos", "readwrite");
-          const store = tx.objectStore("photos");
-          await store.add({
-            name: name,
-            data: dataUrl,
-            created: new Date().toISOString(),
-          });
-          await tx.done;
-          console.log("✅ Photo saved in IndexedDB:", name);
-        } catch (err) {
-          console.error("❌ Error saving photo:", err);
-        }
+      async function savePhotoToIndexedDB(dataUrl, meta = {}) {
+        const db = await openDB();
+        return new Promise((res, rej) => {
+          const tx = db.transaction("pictures", "readwrite");
+          const store = tx.objectStore("pictures");
+          // convert dataURL -> blob
+          fetch(dataUrl)
+            .then((r) => r.blob())
+            .then((blob) => {
+              const item = { blob, meta, created: Date.now() };
+              const req = store.add(item);
+              req.onsuccess = () => res(req.result);
+              req.onerror = () => rej(req.error);
+            })
+            .catch(rej);
+        });
       }
 
       async function getAllPhotos() {
@@ -2812,125 +2312,92 @@
         }
 
         /* ----------------- Boot sequence (safe) ----------------- */
+        // --- OSMIND BOOT SEQUENCE HANDLER ---
+        // جایگزین runBootSequenceIfNeeded با این بلوک
         if (!window.runBootSequenceIfNeeded) {
           window.runBootSequenceIfNeeded = function () {
             return new Promise((resolve) => {
-              try {
-                const boot = document.getElementById("boot-screen");
-                if (!boot) {
-                  resolve();
-                  return;
+              const boot = document.getElementById("boot-screen");
+              if (!boot) {
+                resolve();
+                return;
+              }
+
+              // جلوگیری از اجرای دوباره
+              if (boot.dataset.running === "true") {
+                console.warn("⚠ Boot already running, skipping duplicate call");
+                resolve();
+                return;
+              }
+              boot.dataset.running = "true";
+
+              const lines = [
+                "[OK] Powering up subsystems...",
+                "[OK] Mounting virtual devices...",
+                "[OK] Loading display compositor...",
+                "[OK] Initializing input hooks...",
+                "[OK] Starting desktop session...",
+                "[OK] Applying theme and wallpaper...",
+                "[READY] Welcome to OSMIND!",
+              ];
+
+              const linesEl =
+                document.getElementById("boot-lines") ||
+                boot.appendChild(document.createElement("pre"));
+              const prog =
+                document.getElementById("boot-progress") ||
+                boot.appendChild(
+                  Object.assign(document.createElement("div"), {
+                    id: "boot-progress",
+                    style:
+                      "height:6px;width:0;background:var(--osmind-theme);border-radius:6px;margin-top:8px;",
+                  })
+                );
+              const tip =
+                document.getElementById("boot-tip") ||
+                boot.appendChild(
+                  Object.assign(document.createElement("div"), {
+                    id: "boot-tip",
+                    style: "margin-top:8px;",
+                  })
+                );
+
+              let i = 0;
+              const safeTimer = setTimeout(() => finish(), 10000);
+
+              function step() {
+                if (i < lines.length) {
+                  linesEl.textContent += lines[i] + "\n";
+                  prog.style.width =
+                    Math.round(((i + 1) / lines.length) * 100) + "%";
+                  i++;
+                  setTimeout(step, 350 + Math.random() * 300);
+                } else {
+                  finish();
                 }
-                let linesEl = document.getElementById("boot-lines");
-                if (!linesEl) {
-                  linesEl = document.createElement("pre");
-                  linesEl.id = "boot-lines";
-                  linesEl.style.whiteSpace = "pre-wrap";
-                  try {
-                    boot.appendChild(linesEl);
-                  } catch {}
-                }
-                let prog = document.getElementById("boot-progress");
-                if (!prog) {
-                  prog = document.createElement("div");
-                  prog.id = "boot-progress";
-                  prog.style.height = "6px";
-                  prog.style.width = "0%";
-                  prog.style.background = "var(--osmind-theme)";
-                  prog.style.borderRadius = "6px";
-                  prog.style.marginTop = "8px";
-                  try {
-                    boot.appendChild(prog);
-                  } catch {}
-                }
-                let tip = document.getElementById("boot-tip");
-                if (!tip) {
-                  tip = document.createElement("div");
-                  tip.id = "boot-tip";
-                  tip.style.marginTop = "8px";
-                  try {
-                    boot.appendChild(tip);
-                  } catch {}
-                }
-                const audioEl = document.getElementById("boot-sound");
-                const lines = [
-                  "[OK] Powering up subsystems...",
-                  "[OK] Mounting virtual devices...",
-                  "[OK] Loading display compositor...",
-                  "[OK] Initializing input hooks...",
-                  "[OK] Starting desktop session...",
-                  "[OK] Applying theme and wallpaper...",
-                  "[READY] Welcome to OSMIND!",
-                ];
-                const SAFE_MS = 9000;
-                const safeTimeout = setTimeout(() => {
-                  try {
-                    boot.style.transition = "opacity 400ms ease";
-                    boot.style.opacity = 0;
-                  } catch {}
+              }
+
+              function finish() {
+                clearTimeout(safeTimer);
+                try {
+                  prog.style.width = "100%";
+                  tip.textContent = "Boot complete. Launching desktop...";
+                  playSound("boot");
+                } catch {}
+                setTimeout(() => {
+                  boot.style.transition = "opacity 0.6s";
+                  boot.style.opacity = 0;
                   setTimeout(() => {
                     try {
                       boot.remove();
                     } catch {}
                     resolve();
-                  }, 450);
-                }, SAFE_MS);
-                if (audioEl) {
-                  try {
-                    audioEl.volume = 0.55;
-                    audioEl.play().catch(() => {});
-                  } catch {}
-                }
-                let i = 0;
-                function step() {
-                  if (!boot) {
-                    clearTimeout(safeTimeout);
-                    resolve();
-                    return;
-                  }
-                  if (i < lines.length) {
-                    try {
-                      linesEl.textContent =
-                        (linesEl.textContent || "") + lines[i] + "\n";
-                    } catch {}
-                    try {
-                      prog.style.width =
-                        Math.round(((i + 1) / lines.length) * 100) + "%";
-                    } catch {}
-                    i++;
-                    setTimeout(step, 300 + Math.random() * 400);
-                  } else {
-                    try {
-                      prog.style.width = "100%";
-                    } catch {}
-                    try {
-                      tip.textContent = "Boot complete. Launching desktop...";
-                    } catch {}
-                    clearTimeout(safeTimeout);
-                    setTimeout(() => {
-                      try {
-                        boot.style.transition =
-                          "opacity 600ms ease, display 600ms";
-                        boot.style.opacity = 0;
-                        boot.style.display = "none";
-                      } catch {}
-                      setTimeout(() => {
-                        try {
-                          boot.remove();
-                        } catch {}
-                        resolve();
-                      }, 700);
-                    }, 700);
-                    try {
-                      playSound("boot");
-                    } catch {}
-                  }
-                }
-                setTimeout(step, 300);
-              } catch (err) {
-                console.warn("boot error", err);
-                resolve();
+                    console.log("✅ Boot complete, launching desktop...");
+                  }, 600);
+                }, 800);
               }
+
+              step();
             });
           };
         }
@@ -3003,27 +2470,13 @@
             if (wins.length) wins[wins.length - 1].remove();
           }
         });
-
-        // call boot in case script placed late
-        document.addEventListener("DOMContentLoaded", function () {
-          try {
-            if (typeof runBootSequenceIfNeeded === "function")
-              runBootSequenceIfNeeded();
-          } catch (e) {
-            console.error("Boot sequence failed:", e);
-          }
-        });
       })();
     </script>
 
     <script>
-      window.addEventListener("load", () => {
-        if (typeof window.runBootSequenceIfNeeded === "function") {
-          console.log("🔹 Boot function found, running...");
-          window.runBootSequenceIfNeeded();
-        } else {
-          console.warn("⚠ Boot function not found at load time.");
-        }
+      document.addEventListener("DOMContentLoaded", async () => {
+        await runBootSequenceIfNeeded();
+        console.log("✅ Boot complete, launching desktop...");
       });
     </script>
   </body>
