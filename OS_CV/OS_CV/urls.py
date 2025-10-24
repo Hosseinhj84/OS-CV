@@ -16,7 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path , include
 from django.shortcuts import render
 from skill.models import Skills, resume
 from Apps.models import webApp
@@ -29,8 +29,8 @@ def home(request):
     return render(request , "main.html" , {"Skill" : skill , "Resumes" : Resume , "webApps": webapp})
 
 
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("" , home , name="home")
+    path("" , home , name="home"),
+    path("", include("accounts.urls")),
 ]

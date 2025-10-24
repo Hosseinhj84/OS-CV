@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>داشبورد کاربری | OSMIND</title>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #0a0f18, #050608);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      color: #00bfff;
+      margin: 0;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 0.6s ease both;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0, 191, 255, 0.4);
+      background: rgba(0, 191, 255, 0.1);
+    }
+
+    .card h3 {
+      color: #00bfff;
+      margin-top: 0;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #00bfff;
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #0090cc;
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      opacity: 0.5;
+      font-size: 0.9rem;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>💻 داشبورد کاربری — {{ user.username }}</h1>
+    <div>آخرین ورود: {{ user.last_login|date:"Y/m/d H:i" }}</div>
+  </header>
+
+  <main class="dashboard">
+
+    <div class="card">
+      <h3>📦 تعداد اپلیکیشن‌ها</h3>
+      <div class="stats"><span>{{ profile.installed_apps }}</span><small>نصب‌شده</small></div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ وضعیت منابع سیستم</h3>
+      <canvas id="systemChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>💾 فضای ذخیره‌سازی</h3>
+      <div class="stats">{{ profile.storage_used }}</div>
+    </div>
+
+    <div class="card">
+      <h3>وضعیت اینترنت</h3>
+      <div class="stats"><span id="internet-status">در حال بررسی ...</span></div>
+    </div>
+
+    <div class="card">
+      <h3>وضعیت باتری</h3>
+      <div class="stats"><span id="battery-level">در حال بررسی ...</span></div>
+    </div>
+
+    <div class="card">
+      <h3>🧠 نسخه OSMIND</h3>
+      <p>v0.9.2 Beta</p>
+      <p>بروزرسانی: ۲۴ مهر ۱۴۰۴</p>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <h3>🚀 آماده‌ای برای شروع؟</h3>
+      <a href="/" class="btn">ورود به سیستم عامل</a>
+    </div>
+
+  </main>
+
+  <footer>
+    © 2025 OSMIND Web OS — All Rights Reserved
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // 📊 دسترسی به نمودار
+      const ctx = document.getElementById('systemChart');
+      const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['CPU', 'Memory', 'GPU', 'Storage'],
+          datasets: [{
+            label: 'System Usage',
+            data: [0, 0, 0, 0],
+            backgroundColor: ['#00bfff', '#1e90ff', '#007fff', '#004d99'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#fff' } } },
+          responsive: true
+        }
+      });
+
+      // 🧠 تابع برای محاسبه RAM واقعی کاربر
+      function getMemoryUsage() {
+        if (navigator.deviceMemory) {
+          const used = performance.memory?.usedJSHeapSize || 0;
+          const total = performance.memory?.jsHeapSizeLimit || 1;
+          return Math.min(100, Math.round((used / total) * 100)) || 0;
+        } else {
+          return Math.floor(Math.random() * 40) + 20; // fallback
+        }
+      }
+
+      // ⚙️ محاسبه ساختگی CPU (تقریب با delay)
+      let cpuLoad = 0;
+      function estimateCPUUsage() {
+        const start = performance.now();
+        for (let i = 0; i < 1000000; i++) Math.sqrt(i);
+        const duration = performance.now() - start;
+        cpuLoad = Math.min(100, Math.round(duration / 3));
+      }
+
+      // 💾 فضای ذخیره‌سازی لوکال
+      function getStorageUsage() {
+        let used = 0;
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            used += ((localStorage[key].length * 2) / 1024 / 1024); // مگابایت
+          }
+        }
+        return Math.min(100, Math.round((used / 100) * 100));
+      }
+
+      // 🎮 GPU (تقریبی)
+      function detectGPU() {
+        const gl = document.createElement('canvas').getContext('webgl');
+        if (!gl) return "N/A";
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown GPU";
+      }
+
+      // 🚀 بروزرسانی داده‌ها هر 5 ثانیه
+      function updateSystemStats() {
+        estimateCPUUsage();
+        const memory = getMemoryUsage();
+        const storage = getStorageUsage();
+        const gpu = Math.floor(Math.random() * 60) + 20; // فعلاً ساختگی
+
+        chart.data.datasets[0].data = [cpuLoad, memory, gpu, storage];
+        chart.update();
+
+        // نمایش متنی (در آینده می‌تونیم کارت‌های جدا براش بزاریم)
+        console.log(`🧠 CPU: ${cpuLoad}% | RAM: ${memory}% | GPU: ${gpu}% | Storage: ${storage}%`);
+      }
+
+      // شروع مانیتورینگ
+      updateSystemStats();
+      setInterval(updateSystemStats, 5000);
+
+    });
+  </script>
+
+  <script>
+    navigator.getBattery().then(function (battery) {
+      document.getElementById("battery-level").textContent = Math.round(battery.level * 100) + "%";
+    });
+
+    function checkInternet() {
+      const statusEl = document.getElementById("internet-status");
+      if (navigator.onLine) {
+        statusEl.textContent = "آنلاین 🌐";
+        statusEl.style.color = "#00ff88";
+      } else {
+        statusEl.textContent = "آفلاین ❌";
+        statusEl.style.color = "#ff4444";
+      }
+    }
+    checkInternet();
+    window.addEventListener("online", checkInternet);
+    window.addEventListener("offline", checkInternet);
+  </script>
+
+
+
+</body>
+
+</html>
